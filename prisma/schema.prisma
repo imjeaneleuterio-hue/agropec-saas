@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String
+  role         String        @default("PRODUCER")
+  phone        String?
+  cpf          String?       @unique
+  avatar       String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  farms        Farm[]
+  subscription Subscription?
+}
+
+model Farm {
+  id               String            @id @default(cuid())
+  name             String
+  cnpj             String?
+  address          String?
+  city             String
+  state            String
+  cep              String?
+  hectares         Float?
+  type             String            @default("MIXED")
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  animals          Animal[]
+  financialRecords FinancialRecord[]
+  alerts           Alert[]
+  dailyMilkTotals  DailyMilkTotal[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([userId])
+}
+
+model Animal {
+  id                 String              @id @default(cuid())
+  name               String?
+  tag                String
+  breed              String
+  sex                String
+  birthDate          DateTime?
+  type               String
+  status             String              @default("ACTIVE")
+  farmId             String
+  farm               Farm                @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  motherId           String?
+  fatherId           String?
+  photoUrl           String?
+  purchaseDate       DateTime?
+  purchasePrice      Float?
+  observations       String?
+  weightRecords      WeightRecord[]
+  milkProductions    MilkProduction[]
+  reproductiveEvents ReproductiveEvent[]
+  healthRecords      HealthRecord[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@unique([farmId, tag])
+  @@index([farmId])
+  @@index([status])
+  @@index([type])
+}
+
+model WeightRecord {
+  id        String   @id @default(cuid())
+  animalId  String
+  animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  weight    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([animalId])
+}
+
+model MilkProduction {
+  id              String   @id @default(cuid())
+  animalId        String
+  animal          Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  date            DateTime
+  morningLiters   Float?   @default(0)
+  afternoonLiters Float?   @default(0)
+  eveningLiters   Float?   @default(0)
+  totalLiters     Float
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@index([animalId])
+  @@index([date])
+}
+
+model DailyMilkTotal {
+  id              String   @id @default(cuid())
+  farmId          String
+  farm            Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  date            DateTime
+  morningLiters   Float    @default(0)
+  afternoonLiters Float    @default(0)
+  eveningLiters   Float    @default(0)
+  totalLiters     Float
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@unique([farmId, date])
+  @@index([farmId])
+  @@index([date])
+}
+
+model ReproductiveEvent {
+  id              String   @id @default(cuid())
+  animalId        String
+  animal          Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  type            String
+  date            DateTime
+  bullName        String?
+  expectedCalving DateTime?
+  result          String?
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@index([animalId])
+  @@index([date])
+}
+
+model HealthRecord {
+  id           String   @id @default(cuid())
+  animalId     String
+  animal       Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  type         String
+  date         DateTime
+  description  String
+  veterinarian String?
+  cost         Float?
+  nextDueDate  DateTime?
+  medications  String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  @@index([animalId])
+  @@index([nextDueDate])
+}
+
+model FinancialRecord {
+  id            String   @id @default(cuid())
+  farmId        String
+  farm          Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  type          String
+  category      String
+  description   String
+  amount        Float
+  date          DateTime
+  paymentStatus String   @default("PENDING")
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([farmId])
+  @@index([date])
+  @@index([type])
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  farmId      String
+  farm        Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  description String
+  dueDate     DateTime?
+  isRead      Boolean  @default(false)
+  priority    String   @default("MEDIUM")
+  animalId    String?
+  createdAt   DateTime @default(now())
+
+  @@index([farmId])
+  @@index([isRead])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String   @default("FREE")
+  status    String   @default("ACTIVE")
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
