@@ -1,16 +1,24 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM ?? 'J.ELEUPEC <onboarding@resend.dev>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'J.ELEUPEC'
 
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
+
 export async function sendVerificationEmail(email: string, name: string, token: string) {
   const link = `${APP_URL}/verificar?token=${token}`
 
-  await resend.emails.send({
-    from: FROM,
+  await transporter.sendMail({
+    from: `${APP_NAME} <${process.env.GMAIL_USER}>`,
     to: email,
     subject: `Confirme seu cadastro — ${APP_NAME}`,
     html: `
