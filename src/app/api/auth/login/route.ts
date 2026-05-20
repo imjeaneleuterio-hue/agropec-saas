@@ -19,8 +19,15 @@ export async function POST(request: Request) {
       include: { farms: { select: { id: true } } },
     })
 
-    if (!user || !user.isActive) {
+    if (!user) {
       return NextResponse.json({ error: 'E-mail ou senha incorretos' }, { status: 401 })
+    }
+
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: 'Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.' },
+        { status: 401 }
+      )
     }
 
     const valid = await bcrypt.compare(password, user.password)

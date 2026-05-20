@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
-import { signToken } from '@/lib/auth'
 import { registerSchema } from '@/lib/validations'
+import { sendVerificationEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -21,50 +22,34 @@ export async function POST(request: Request) {
     }
 
     const hashed = await bcrypt.hash(password, 12)
+    const verificationToken = randomBytes(32).toString('hex')
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name,
         email,
         password: hashed,
         phone,
         cpf,
+        isActive: false,
+        verificationToken,
+        verificationTokenExpiry,
         farms: {
-          create: {
-            name: farmName,
-            city: farmCity,
-            state: farmState,
-            type: farmType,
-          },
+          create: { name: farmName, city: farmCity, state: farmState, type: farmType },
         },
         subscription: {
           create: { plan: 'FREE', status: 'ACTIVE' },
         },
       },
-      include: { farms: { select: { id: true } } },
     })
 
-    const token = await signToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role as any,
-      farmId: user.farms[0]?.id,
-    })
+    await sendVerificationEmail(email, name, verificationToken)
 
-    const response = NextResponse.json({
-      data: { id: user.id, name: user.name, email: user.email, role: user.role },
-      message: 'Conta criada com sucesso',
-    }, { status: 201 })
-
-    response.cookies.set('jeleupec_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    })
-
-    return response
+    return NextResponse.json(
+      { message: 'Conta criada! Verifique seu e-mail para ativar o acesso.' },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('[REGISTER]', error)
     const msg = error instanceof Error ? error.message : 'Erro interno do servidor'

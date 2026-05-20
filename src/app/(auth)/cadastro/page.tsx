@@ -10,6 +10,7 @@ export default function CadastroPage() {
   const [step, setStep] = useState(1)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [emailEnviado, setEmailEnviado] = useState('')
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '', cpf: '',
     farmName: '', farmCity: '', farmState: 'GO', farmType: 'MIXED' as const,
@@ -32,13 +33,33 @@ export default function CadastroPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Erro ao cadastrar'); return }
-      router.push('/dashboard')
-      router.refresh()
+      setEmailEnviado(form.email)
     } catch {
       setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (emailEnviado) {
+    return (
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+          <div className="text-5xl mb-4">📧</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Verifique seu e-mail</h2>
+          <p className="text-gray-600 text-sm mb-2">
+            Enviamos um link de confirmação para:
+          </p>
+          <p className="font-semibold text-primary-700 mb-6">{emailEnviado}</p>
+          <p className="text-gray-500 text-xs mb-6">
+            Clique no link do e-mail para ativar sua conta. Verifique também a caixa de spam.
+          </p>
+          <Link href="/login" className="btn-secondary py-2.5 px-6 text-sm">
+            Já confirmei — ir para login
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
