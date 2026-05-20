@@ -79,9 +79,9 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <Link href="/esqueci-senha" className="text-sm text-primary-600 hover:underline">
+          <a href="/esqueci-senha" className="text-sm text-primary-600 hover:underline">
             Esqueceu sua senha?
-          </Link>
+          </a>
         </div>
 
         <div className="mt-3 text-center">
