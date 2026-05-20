@@ -341,7 +341,7 @@ function TabReproducao() {
         {animalSelecionado && (
           <div className="mt-3 flex gap-4 text-xs text-gray-500 flex-wrap">
             <span>Raça: <b className="text-gray-700">{animalSelecionado.breed}</b></span>
-            <span>Tipo: <b className="text-gray-700">{animalSelecionado.type === 'DAIRY' ? 'Leite' : 'Corte'}</b></span>
+            <span>Tipo: <b className="text-gray-700">Leiteira</b></span>
             <span>Status: <b className="text-gray-700">{animalSelecionado.status}</b></span>
           </div>
         )}

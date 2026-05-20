@@ -42,7 +42,6 @@ export default function RebanhoPage() {
     total: animals.length,
     active: animals.filter((a) => a.status === 'ACTIVE').length,
     dairy: animals.filter((a) => a.type === 'DAIRY').length,
-    beef: animals.filter((a) => a.type === 'BEEF').length,
   }
 
   return (
@@ -61,8 +60,7 @@ export default function RebanhoPage() {
         {[
           { label: 'Total', value: counts.total, icon: '🐄', active: filterType === 'ALL' && filterStatus === 'ALL', onClick: () => { setFilterType('ALL'); setFilterStatus('ALL') } },
           { label: 'Ativos', value: counts.active, icon: '✅', active: filterStatus === 'ACTIVE', onClick: () => setFilterStatus('ACTIVE') },
-          { label: 'Leiteiros', value: counts.dairy, icon: '🥛', active: filterType === 'DAIRY', onClick: () => setFilterType('DAIRY') },
-          { label: 'Corte', value: counts.beef, icon: '🥩', active: filterType === 'BEEF', onClick: () => setFilterType('BEEF') },
+          { label: 'Leiteiras', value: counts.dairy, icon: '🥛', active: filterType === 'DAIRY', onClick: () => setFilterType('DAIRY') },
         ].map((c) => (
           <button key={c.label} onClick={c.onClick}
             className={cn('bg-white rounded-xl border-2 px-4 py-3 text-left transition-all',
@@ -86,11 +84,6 @@ export default function RebanhoPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select className="input-field w-auto" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-            <option value="ALL">Todos os tipos</option>
-            <option value="DAIRY">Leiteiro</option>
-            <option value="BEEF">Corte</option>
-          </select>
           <select className="input-field w-auto" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="ALL">Todos os status</option>
             <option value="ACTIVE">Ativo</option>
@@ -210,7 +203,7 @@ export default function RebanhoPage() {
               <div className="text-xs text-gray-500 space-y-1">
                 <p>🧬 {animal.breed}</p>
                 {animal.birthDate && <p>📅 {calcAge(animal.birthDate)}</p>}
-                <p>{animal.type === 'DAIRY' ? '🥛 Leiteiro' : '🥩 Corte'}</p>
+                <p>🥛 Leiteira</p>
               </div>
             </Link>
           ))}

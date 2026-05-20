@@ -7,7 +7,7 @@ import Link from 'next/link'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
 
 const EMPTY_STATS: DashboardStats = {
-  totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0, beefAnimals: 0,
+  totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0,
   todayMilkTotal: 0, monthMilkTotal: 0, pendingAlerts: 0, criticalAlerts: 0,
   monthIncome: 0, monthExpense: 0, pregnantAnimals: 0, upcomingVaccinations: 0,
   upcomingEstrus: [],
@@ -70,8 +70,7 @@ export default function DashboardPage() {
 
   const piData = [
     { name: 'Leiteiras', value: stats.dairyAnimals, color: '#16a34a' },
-    { name: 'Corte', value: stats.beefAnimals, color: '#22c55e' },
-    { name: 'Outros', value: Math.max(0, stats.activeAnimals - stats.dairyAnimals - stats.beefAnimals), color: '#86efac' },
+    { name: 'Outros', value: Math.max(0, stats.activeAnimals - stats.dairyAnimals), color: '#86efac' },
   ].filter((d) => d.value > 0)
 
   const hasMilkData = milkChart.some((d) => d.liters > 0)
@@ -105,9 +104,8 @@ export default function DashboardPage() {
               sub={`Receita: ${formatCurrency(stats.monthIncome)}`} color={balance >= 0 ? 'green' : 'red'} />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <MiniCard label="Leiteiras" value={stats.dairyAnimals} icon="🥛" />
-            <MiniCard label="Corte" value={stats.beefAnimals} icon="🥩" />
             <MiniCard label="Prenhas" value={stats.pregnantAnimals} icon="🤰" />
             <MiniCard label="A Pagar Mês" value={formatCurrency(stats.monthExpense)} icon="💸" isText />
           </div>

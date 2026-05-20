@@ -70,11 +70,6 @@ export const BREEDS_DAIRY = [
   'Pardo Suíço', 'Ayrshire', 'Guzerá', 'Sindi', 'Mestiça',
 ]
 
-export const BREEDS_BEEF = [
-  'Nelore', 'Angus', 'Brahman', 'Senepol', 'Hereford',
-  'Limousin', 'Simmental', 'Brangus', 'Canchim', 'Tabapuã',
-  'Caracu', 'Guzolando', 'Mestiço',
-]
 
 export const FINANCIAL_CATEGORIES_INCOME = [
   'Venda de Leite', 'Venda de Animais', 'Venda de Bezerros',
@@ -89,10 +84,10 @@ export const FINANCIAL_CATEGORIES_EXPENSE = [
 ]
 
 export const LABELS = {
-  animalType: { DAIRY: 'Leiteiro', BEEF: 'Corte' },
+  animalType: { DAIRY: 'Leiteira', BEEF: 'Leiteira' },
   sex: { MALE: 'Macho', FEMALE: 'Fêmea' },
   status: { ACTIVE: 'Ativo', SOLD: 'Vendido', DEAD: 'Morto', TRANSFERRED: 'Transferido' },
-  farmType: { DAIRY: 'Pecuária Leiteira', BEEF: 'Pecuária de Corte', MIXED: 'Mista' },
+  farmType: { DAIRY: 'Pecuária Leiteira', BEEF: 'Pecuária Leiteira', MIXED: 'Pecuária Leiteira' },
   priority: { LOW: 'Baixa', MEDIUM: 'Média', HIGH: 'Alta', CRITICAL: 'Crítica' },
   alertType: {
     VACCINATION: 'Vacinação',

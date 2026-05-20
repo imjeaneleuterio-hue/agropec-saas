@@ -244,8 +244,6 @@ export default function ConfiguracoesPage() {
                   <select className="input-field" value={farmForm.type}
                     onChange={(e) => setFarmForm({ ...farmForm, type: e.target.value })}>
                     <option value="DAIRY">Leiteira</option>
-                    <option value="BEEF">Corte</option>
-                    <option value="MIXED">Mista</option>
                   </select>
                 </div>
               </div>

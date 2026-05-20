@@ -374,8 +374,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                 <div>
                   <label className="label">Tipo</label>
                   <select className="input-field" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                    <option value="DAIRY">Leiteiro</option>
-                    <option value="BEEF">Corte</option>
+                    <option value="DAIRY">Leiteira</option>
                   </select>
                 </div>
               </div>

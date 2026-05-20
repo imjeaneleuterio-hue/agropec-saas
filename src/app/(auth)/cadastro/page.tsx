@@ -129,8 +129,6 @@ export default function CadastroPage() {
                 <label className="label">Tipo de Pecuária *</label>
                 <select required className="input-field" value={form.farmType} onChange={(e) => update('farmType', e.target.value)}>
                   <option value="DAIRY">Pecuária Leiteira</option>
-                  <option value="BEEF">Pecuária de Corte</option>
-                  <option value="MIXED">Mista (Leite + Corte)</option>
                 </select>
               </div>
             </>

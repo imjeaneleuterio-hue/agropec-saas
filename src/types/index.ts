@@ -175,7 +175,6 @@ export interface DashboardStats {
   totalAnimals: number
   activeAnimals: number
   dairyAnimals: number
-  beefAnimals: number
   todayMilkTotal: number
   monthMilkTotal: number
   pendingAlerts: number

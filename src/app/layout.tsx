@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: { default: 'J.ELEUPEC', template: '%s | J.ELEUPEC' },
-  description: 'Sistema completo de gestão para pecuária leiteira e de corte',
+  description: 'Sistema completo de gestão para pecuária leiteira',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon-192.png',

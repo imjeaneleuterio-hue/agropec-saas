@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BREEDS_DAIRY, BREEDS_BEEF } from '@/lib/utils'
+import { BREEDS_DAIRY } from '@/lib/utils'
 
 export default function NovoAnimalPage() {
   const router = useRouter()
@@ -28,7 +28,7 @@ export default function NovoAnimalPage() {
     setPhotoPreview(URL.createObjectURL(file))
   }
 
-  const breeds = form.type === 'DAIRY' ? BREEDS_DAIRY : BREEDS_BEEF
+  const breeds = BREEDS_DAIRY
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -109,13 +109,6 @@ export default function NovoAnimalPage() {
               <label className="label">Nome</label>
               <input placeholder="Ex: Mimosa" className="input-field"
                 value={form.name} onChange={(e) => update('name', e.target.value)} />
-            </div>
-            <div>
-              <label className="label">Tipo *</label>
-              <select required className="input-field" value={form.type} onChange={(e) => update('type', e.target.value)}>
-                <option value="DAIRY">Leiteiro</option>
-                <option value="BEEF">Corte</option>
-              </select>
             </div>
             <div>
               <label className="label">Sexo *</label>
