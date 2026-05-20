@@ -79,9 +79,13 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-4 text-center">
-          <a href="/esqueci-senha" className="text-sm text-primary-600 hover:underline">
+          <button
+            type="button"
+            onClick={() => { window.location.href = '/esqueci-senha' }}
+            className="text-sm text-primary-600 hover:underline"
+          >
             Esqueceu sua senha?
-          </a>
+          </button>
         </div>
 
         <div className="mt-3 text-center">
