@@ -1,17 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
-  const [modo, setModo] = useState<'login' | 'esqueci'>('login')
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+
+  const [modo, setModo] = useState<'login' | 'esqueci' | 'redefinir'>('login')
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [emailEnviado, setEmailEnviado] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarSenha, setConfirmarSenha] = useState('')
+  const [senhaRedefinida, setSenhaRedefinida] = useState(false)
+
+  useEffect(() => {
+    if (token) setModo('redefinir')
+  }, [token])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -54,6 +64,28 @@ export default function LoginPage() {
     }
   }
 
+  async function handleRedefinir(e: React.FormEvent) {
+    e.preventDefault()
+    if (novaSenha !== confirmarSenha) { setError('As senhas não coincidem.'); return }
+    if (novaSenha.length < 6) { setError('A senha deve ter no mínimo 6 caracteres.'); return }
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/auth/redefinir-senha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: novaSenha }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Erro ao redefinir.'); return }
+      setSenhaRedefinida(true)
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="w-full max-w-md">
       <div className="bg-white rounded-2xl shadow-2xl p-8">
@@ -65,11 +97,7 @@ export default function LoginPage() {
               <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta!</h1>
               <p className="text-gray-500 text-sm mt-2">Entre na sua conta J.ELEUPEC</p>
             </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
-            )}
-
+            {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="label">E-mail</label>
@@ -82,31 +110,21 @@ export default function LoginPage() {
                   value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Entrando...
-                  </span>
-                ) : 'Entrar'}
+                {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Entrando...</span> : 'Entrar'}
               </button>
             </form>
-
             <div className="mt-4 text-center">
               <button type="button" onClick={() => { setModo('esqueci'); setError(''); setEmailEnviado(false) }}
                 className="text-sm text-primary-600 hover:underline">
                 Esqueceu sua senha?
               </button>
             </div>
-
             <div className="mt-3 text-center">
               <p className="text-sm text-gray-600">
                 Não tem conta?{' '}
-                <Link href="/cadastro" className="text-primary-600 font-medium hover:underline">
-                  Cadastre-se grátis
-                </Link>
+                <Link href="/cadastro" className="text-primary-600 font-medium hover:underline">Cadastre-se grátis</Link>
               </p>
             </div>
-
             <div className="mt-6 pt-6 border-t border-gray-100">
               <p className="text-xs text-gray-400 text-center mb-3">Demo — use as credenciais:</p>
               <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 space-y-1">
@@ -138,11 +156,7 @@ export default function LoginPage() {
                   <h1 className="text-2xl font-bold text-gray-900">Esqueceu a senha?</h1>
                   <p className="text-gray-500 text-sm mt-2">Digite seu e-mail para receber o link de redefinição</p>
                 </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
-                )}
-
+                {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
                 <form onSubmit={handleEsqueci} className="space-y-4">
                   <div>
                     <label className="label">E-mail</label>
@@ -150,21 +164,53 @@ export default function LoginPage() {
                       value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
                   </div>
                   <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Enviando...
-                      </span>
-                    ) : 'Enviar link'}
+                    {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Enviando...</span> : 'Enviar link'}
                   </button>
                 </form>
-
                 <div className="mt-4 text-center">
                   <button type="button" onClick={() => { setModo('login'); setError('') }}
-                    className="text-sm text-gray-500 hover:underline">
-                    ← Voltar para o login
-                  </button>
+                    className="text-sm text-gray-500 hover:underline">← Voltar para o login</button>
                 </div>
+              </>
+            )}
+          </>
+        )}
+
+        {/* Redefinir senha (via link do email) */}
+        {modo === 'redefinir' && (
+          <>
+            {senhaRedefinida ? (
+              <div className="text-center">
+                <div className="text-5xl mb-4">✅</div>
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Senha redefinida!</h2>
+                <p className="text-gray-500 text-sm mb-6">Agora faça login com a nova senha.</p>
+                <button type="button" onClick={() => { setModo('login'); setSenhaRedefinida(false) }}
+                  className="btn-primary py-3 px-8">
+                  Fazer login
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900">Nova senha</h1>
+                  <p className="text-gray-500 text-sm mt-2">Escolha uma nova senha para sua conta</p>
+                </div>
+                {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+                <form onSubmit={handleRedefinir} className="space-y-4">
+                  <div>
+                    <label className="label">Nova senha</label>
+                    <input type="password" required minLength={6} placeholder="Mínimo 6 caracteres" className="input-field"
+                      value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label">Confirmar nova senha</label>
+                    <input type="password" required placeholder="Repita a senha" className="input-field"
+                      value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} />
+                  </div>
+                  <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+                    {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvando...</span> : 'Redefinir senha'}
+                  </button>
+                </form>
               </>
             )}
           </>
@@ -172,5 +218,13 @@ export default function LoginPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   )
 }

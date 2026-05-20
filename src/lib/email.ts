@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 })
 
 export async function sendPasswordResetEmail(email: string, name: string, token: string) {
-  const link = `${APP_URL}/redefinir-senha?token=${token}`
+  const link = `${APP_URL}/login?token=${token}`
 
   await transporter.sendMail({
     from: `${APP_NAME} <${process.env.GMAIL_USER}>`,
