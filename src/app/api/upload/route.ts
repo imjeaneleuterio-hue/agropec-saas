@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { writeFile, mkdir } from 'fs/promises'
-import { join, extname } from 'path'
-import { existsSync } from 'fs'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SECRET_KEY!
+)
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
-const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_SIZE = 5 * 1024 * 1024
 
 export async function POST(request: Request) {
   try {
@@ -17,26 +20,28 @@ export async function POST(request: Request) {
 
     if (!file) return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo de arquivo não suportado. Use JPG, PNG ou WebP.' }, { status: 400 })
+      return NextResponse.json({ error: 'Use JPG, PNG ou WebP.' }, { status: 400 })
     }
     if (file.size > MAX_SIZE) {
       return NextResponse.json({ error: 'Arquivo muito grande. Máximo 5MB.' }, { status: 400 })
     }
 
-    const uploadDir = join(process.cwd(), 'public', 'uploads', session.userId)
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
+    const ext = file.name.split('.').pop() ?? 'jpg'
+    const fileName = `${session.userId}/${Date.now()}.${ext}`
 
-    const ext = extname(file.name) || '.jpg'
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`
-    const filepath = join(uploadDir, filename)
+    const buffer = Buffer.from(await file.arrayBuffer())
 
-    const bytes = await file.arrayBuffer()
-    await writeFile(filepath, Buffer.from(bytes))
+    await supabase.storage.createBucket('fotos', { public: true }).catch(() => {})
 
-    const url = `/uploads/${session.userId}/${filename}`
-    return NextResponse.json({ url, message: 'Upload realizado com sucesso' }, { status: 201 })
+    const { error } = await supabase.storage
+      .from('fotos')
+      .upload(fileName, buffer, { contentType: file.type, upsert: true })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(fileName)
+
+    return NextResponse.json({ url: urlData.publicUrl })
   } catch (error) {
     console.error('[UPLOAD]', error)
     return NextResponse.json({ error: 'Erro ao fazer upload' }, { status: 500 })

@@ -28,9 +28,12 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+
   const [form, setForm] = useState({
     name: '', tag: '', breed: '', sex: 'FEMALE', type: 'DAIRY',
     status: 'ACTIVE', birthDate: '', purchaseDate: '', purchasePrice: '', observations: '',
+    photoUrl: '',
   })
 
   useEffect(() => {
@@ -50,11 +53,31 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
             purchaseDate: d.data.purchaseDate ? d.data.purchaseDate.slice(0, 10) : '',
             purchasePrice: d.data.purchasePrice?.toString() ?? '',
             observations: d.data.observations ?? '',
+            photoUrl: d.data.photoUrl ?? '',
           })
         }
       })
       .finally(() => setLoading(false))
   }, [id])
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingPhoto(true)
+    setError('')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (res.ok) setForm((prev) => ({ ...prev, photoUrl: data.url }))
+      else setError(data.error ?? 'Erro ao enviar foto')
+    } catch {
+      setError('Erro de conexão ao enviar foto')
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
 
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault()
@@ -123,9 +146,14 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
       {/* Profile Card */}
       <div className="card p-6">
         <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0">
-            {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
-          </div>
+          {animal.photoUrl ? (
+            <img src={animal.photoUrl} alt={animal.name ?? animal.tag}
+              className="w-24 h-24 rounded-2xl object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl flex items-center justify-center text-4xl flex-shrink-0">
+              {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
+            </div>
+          )}
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3">
             <InfoItem label="Brinco/Tag" value={`#${animal.tag}`} />
             <InfoItem label="Raça" value={animal.breed} />
@@ -376,6 +404,20 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                 <label className="label">Observações</label>
                 <textarea className="input-field" rows={3} value={form.observations}
                   onChange={(e) => setForm({ ...form, observations: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">Foto</label>
+                {form.photoUrl && (
+                  <img src={form.photoUrl} alt="Prévia" className="w-20 h-20 rounded-xl object-cover mb-2" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingPhoto}
+                  onChange={handlePhotoUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                />
+                {uploadingPhoto && <p className="text-xs text-gray-400 mt-1">Enviando foto...</p>}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setEditOpen(false)} className="btn-secondary flex-1">Cancelar</button>

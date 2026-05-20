@@ -17,6 +17,7 @@
     "@anthropic-ai/sdk": "^0.97.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.14.0",
+    "@supabase/supabase-js": "^2.106.1",
     "@tailwindcss/postcss": "^4.2.4",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",

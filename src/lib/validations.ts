@@ -28,6 +28,7 @@ export const animalSchema = z.object({
   purchaseDate: z.string().optional(),
   purchasePrice: z.coerce.number().optional(),
   observations: z.string().optional(),
+  photoUrl: z.string().optional(),
 })
 
 export const milkProductionSchema = z.object({
