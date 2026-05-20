@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { signToken, setAuthCookie } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +33,10 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json({ message: 'Senha redefinida com sucesso! Faça login com a nova senha.' })
+    const jwt = await signToken({ userId: user.id, email: user.email, name: user.name })
+    await setAuthCookie(jwt)
+
+    return NextResponse.json({ message: 'ok' })
   } catch (error) {
     console.error('[REDEFINIR-SENHA]', error)
     return NextResponse.json({ error: 'Erro interno.' }, { status: 500 })

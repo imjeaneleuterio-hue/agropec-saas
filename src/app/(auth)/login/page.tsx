@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -9,7 +9,7 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
-  const [modo, setModo] = useState<'login' | 'esqueci' | 'redefinir'>('login')
+  const [modo, setModo] = useState<'login' | 'esqueci' | 'redefinir'>(token ? 'redefinir' : 'login')
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,11 +17,6 @@ function LoginContent() {
   const [resetEmail, setResetEmail] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
-  const [senhaRedefinida, setSenhaRedefinida] = useState(false)
-
-  useEffect(() => {
-    if (token) setModo('redefinir')
-  }, [token])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -78,7 +73,8 @@ function LoginContent() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Erro ao redefinir.'); return }
-      setSenhaRedefinida(true)
+      router.push('/dashboard')
+      router.refresh()
     } catch {
       setError('Erro de conexão. Tente novamente.')
     } finally {
@@ -179,40 +175,28 @@ function LoginContent() {
         {/* Redefinir senha (via link do email) */}
         {modo === 'redefinir' && (
           <>
-            {senhaRedefinida ? (
-              <div className="text-center">
-                <div className="text-5xl mb-4">✅</div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Senha redefinida!</h2>
-                <p className="text-gray-500 text-sm mb-6">Agora faça login com a nova senha.</p>
-                <button type="button" onClick={() => { setModo('login'); setSenhaRedefinida(false) }}
-                  className="btn-primary py-3 px-8">
-                  Fazer login
-                </button>
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Nova senha</h1>
+                <p className="text-gray-500 text-sm mt-2">Escolha uma nova senha para sua conta</p>
               </div>
-            ) : (
-              <>
-                <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">Nova senha</h1>
-                  <p className="text-gray-500 text-sm mt-2">Escolha uma nova senha para sua conta</p>
+              {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+              <form onSubmit={handleRedefinir} className="space-y-4">
+                <div>
+                  <label className="label">Nova senha</label>
+                  <input type="password" required minLength={6} placeholder="Mínimo 6 caracteres" className="input-field"
+                    value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} />
                 </div>
-                {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
-                <form onSubmit={handleRedefinir} className="space-y-4">
-                  <div>
-                    <label className="label">Nova senha</label>
-                    <input type="password" required minLength={6} placeholder="Mínimo 6 caracteres" className="input-field"
-                      value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="label">Confirmar nova senha</label>
-                    <input type="password" required placeholder="Repita a senha" className="input-field"
-                      value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} />
-                  </div>
-                  <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-                    {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvando...</span> : 'Redefinir senha'}
-                  </button>
-                </form>
-              </>
-            )}
+                <div>
+                  <label className="label">Confirmar nova senha</label>
+                  <input type="password" required placeholder="Repita a senha" className="input-field"
+                    value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} />
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+                  {loading ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Salvando...</span> : 'Redefinir senha'}
+                </button>
+              </form>
+            </>
           </>
         )}
 
