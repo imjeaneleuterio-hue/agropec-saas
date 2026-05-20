@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { STATES_BR, LABELS, formatDate } from '@/lib/utils'
 
 type UserData = {
@@ -14,12 +15,18 @@ type FarmData = {
 }
 
 export default function ConfiguracoesPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState(0)
   const [user, setUser] = useState<UserData | null>(null)
   const [farm, setFarm] = useState<FarmData | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const deleteInputRef = useRef<HTMLInputElement>(null)
 
   // Profile form
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', cpf: '' })
@@ -54,6 +61,24 @@ export default function ConfiguracoesPage() {
   }, [])
 
   function showSaved() { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+
+  async function handleDeleteAccount() {
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const res = await fetch('/api/auth/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: deletePassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setDeleteError(data.error ?? 'Erro ao excluir conta.'); setDeleting(false); return }
+      router.push('/login')
+    } catch {
+      setDeleteError('Erro de conexão.')
+      setDeleting(false)
+    }
+  }
 
   async function saveProfile() {
     setSaving(true); setError('')
@@ -282,6 +307,51 @@ export default function ConfiguracoesPage() {
               </div>
             </div>
             <p className="text-xs text-gray-400 mt-2">Função de troca de senha em desenvolvimento.</p>
+          </div>
+
+          <div className="pt-4 border-t border-red-100">
+            <h3 className="text-sm font-semibold text-red-600 mb-1">Zona de perigo</h3>
+            <p className="text-xs text-gray-500 mb-3">
+              Excluir sua conta remove permanentemente todos os seus dados, animais e registros. Esta ação não pode ser desfeita.
+            </p>
+            <button
+              onClick={() => { setDeleteConfirm(true); setDeleteError(''); setDeletePassword(''); setTimeout(() => deleteInputRef.current?.focus(), 100) }}
+              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              🗑️ Excluir minha conta
+            </button>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Excluir conta?</h2>
+            <p className="text-gray-500 text-sm mb-4">
+              Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.
+            </p>
+            {deleteError && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{deleteError}</div>
+            )}
+            <input
+              ref={deleteInputRef}
+              type="password"
+              placeholder="Sua senha"
+              className="input-field mb-4"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(false)} className="btn-secondary flex-1">Cancelar</button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting || !deletePassword}
+                className="flex-1 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm"
+              >
+                {deleting ? 'Excluindo...' : 'Excluir conta'}
+              </button>
+            </div>
           </div>
         </div>
       )}
