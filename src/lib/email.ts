@@ -2,7 +2,8 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = process.env.RESEND_FROM ?? 'J.ELEUPEC <onboarding@resend.dev>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'J.ELEUPEC'
 
 export async function sendVerificationEmail(email: string, name: string, token: string) {
