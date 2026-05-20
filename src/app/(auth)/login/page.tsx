@@ -58,10 +58,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="label mb-0">Senha</label>
-              <Link href="/esqueci-senha" className="text-xs text-primary-600 hover:underline">Esqueceu?</Link>
-            </div>
+            <label className="label">Senha</label>
             <input
               type="password"
               required
@@ -81,7 +78,13 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
+          <Link href="/esqueci-senha" className="text-sm text-primary-600 hover:underline">
+            Esqueceu sua senha?
+          </Link>
+        </div>
+
+        <div className="mt-3 text-center">
           <p className="text-sm text-gray-600">
             Não tem conta?{' '}
             <Link href="/cadastro" className="text-primary-600 font-medium hover:underline">
