@@ -65,13 +65,12 @@ export async function POST(request: Request) {
       const animal = await prisma.animal.findUnique({ where: { id: data.animalId } })
       const animalLabel = animal?.name ?? `#${animal?.tag}`
 
-      // Cancela previsão de cio pendente quando a vaca foi coberta ou confirmou prenhez
-      if (data.type === 'INSEMINATION' || data.type === 'NATURAL_MATING' || data.type === 'PREGNANCY_CHECK_POSITIVE') {
+      // Cancela previsão de cio pendente quando a vaca entrou em cio, foi coberta ou confirmou prenhez
+      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'ESTRUS'].includes(data.type)) {
         await prisma.alert.deleteMany({
           where: {
             farmId,
             animalId: data.animalId,
-            isRead: false,
             title: { startsWith: 'Previsão de Cio' },
           },
         })

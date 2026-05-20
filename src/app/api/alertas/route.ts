@@ -35,30 +35,20 @@ export async function GET(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function DELETE(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const body = await request.json()
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
 
-    if (body.markAllRead) {
-      const farmId = await getActiveFarmId(session.userId)
-      if (farmId) {
-        await prisma.alert.updateMany({
-          where: { farmId, isRead: false },
-          data: { isRead: true },
-        })
-      }
-      return NextResponse.json({ message: 'Todos os alertas marcados como lidos' })
-    }
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
 
-    if (body.id) {
-      await prisma.alert.update({ where: { id: body.id }, data: { isRead: true } })
-      return NextResponse.json({ message: 'Alerta marcado como lido' })
-    }
-
-    return NextResponse.json({ error: 'Parâmetro inválido' }, { status: 400 })
+    await prisma.alert.deleteMany({ where: { id, farmId } })
+    return NextResponse.json({ message: 'Alerta removido' })
   } catch {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }

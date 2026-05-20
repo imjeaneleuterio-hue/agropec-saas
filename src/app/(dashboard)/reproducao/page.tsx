@@ -31,9 +31,12 @@ const EMPTY_FORM = {
   notes: '',
 }
 
+type EstrusAlert = { id: string; title: string; dueDate: string; description: string }
+
 export default function ReproducaoPage() {
   const [events, setEvents] = useState<ReproductiveEvent[]>([])
   const [animals, setAnimals] = useState<Animal[]>([])
+  const [upcomingCios, setUpcomingCios] = useState<EstrusAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -52,9 +55,20 @@ export default function ReproducaoPage() {
   async function load() {
     setLoading(true)
     try {
-      const res = await fetch('/api/reproducao')
-      const data = await res.json()
-      if (Array.isArray(data.data)) setEvents(data.data)
+      const [repRes, alertRes] = await Promise.all([
+        fetch('/api/reproducao'),
+        fetch('/api/alertas?withinDays=30'),
+      ])
+      const repData = await repRes.json()
+      const alertData = await alertRes.json()
+      if (Array.isArray(repData.data)) setEvents(repData.data)
+      if (Array.isArray(alertData.data)) {
+        setUpcomingCios(
+          alertData.data
+            .filter((a: EstrusAlert) => a.title?.startsWith('Previsão de Cio') && a.dueDate)
+            .sort((a: EstrusAlert, b: EstrusAlert) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+        )
+      }
     } catch {}
     setLoading(false)
   }
@@ -161,6 +175,38 @@ export default function ReproducaoPage() {
                     <p className="font-semibold text-gray-900">{formatDate(e.expectedCalving!)}</p>
                     <p className={cn('text-xs font-medium', daysLeft <= 15 ? 'text-red-600' : daysLeft <= 30 ? 'text-orange-600' : 'text-gray-500')}>
                       {daysLeft <= 0 ? 'Hoje!' : `Em ${daysLeft} dias`}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Próximos Cios */}
+      {upcomingCios.length > 0 && (
+        <div className="card p-5">
+          <h2 className="section-title mb-4">❤️ Próximos Cios Previstos</h2>
+          <div className="space-y-3">
+            {upcomingCios.map((item) => {
+              const daysLeft = daysFromToday(item.dueDate)
+              const animalName = item.title.replace('Previsão de Cio — ', '')
+              return (
+                <div key={item.id} className="flex items-center gap-4 p-3 bg-pink-50 border border-pink-200 rounded-xl">
+                  <div className="text-2xl">❤️</div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{animalName}</p>
+                    <p className="text-sm text-gray-500">{item.description.split('—')[0].trim()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">{formatDate(item.dueDate)}</p>
+                    <p className={cn('text-xs font-medium',
+                      daysLeft <= 0 ? 'text-pink-700 font-bold' :
+                      daysLeft <= 2 ? 'text-pink-600' :
+                      daysLeft <= 7 ? 'text-orange-500' : 'text-gray-500'
+                    )}>
+                      {daysLeft <= 0 ? 'Hoje!' : daysLeft === 1 ? 'Amanhã' : `Em ${daysLeft} dias`}
                     </p>
                   </div>
                 </div>

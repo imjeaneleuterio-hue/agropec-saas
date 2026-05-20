@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { VoiceButton } from '@/components/VoiceButton'
 import type { User } from '@/types'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -16,6 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/financeiro': 'Financeiro Rural',
   '/alertas': 'Alertas e Notificações',
   '/relatorios': 'Relatórios',
+  '/ia': 'IA Veterinária',
   '/admin': 'Administração',
   '/configuracoes': 'Configurações',
 }
@@ -51,6 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {children}
           </div>
         </main>
+        <VoiceButton />
       </div>
     </div>
   )

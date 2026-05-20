@@ -8,19 +8,39 @@ interface NavItem {
   label: string
   href: string
   icon: string
-  badge?: number
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: '⬛' },
-  { label: 'Rebanho', href: '/rebanho', icon: '🐄' },
-  { label: 'Controle Leiteiro', href: '/leite', icon: '🥛' },
-  { label: 'Reprodução', href: '/reproducao', icon: '🗓️' },
-  { label: 'Sanitário', href: '/sanitario', icon: '💉' },
-  { label: 'Pesagem', href: '/pesagem', icon: '⚖️' },
-  { label: 'Financeiro', href: '/financeiro', icon: '💰' },
-  { label: 'Alertas', href: '/alertas', icon: '🔔' },
-  { label: 'Relatórios', href: '/relatorios', icon: '📊' },
+const NAV_GROUPS = [
+  {
+    title: 'Principal',
+    items: [
+      { label: 'Início', href: '/dashboard', icon: '🏠' },
+      { label: 'Alertas', href: '/alertas', icon: '🔔' },
+    ],
+  },
+  {
+    title: 'Rebanho',
+    items: [
+      { label: 'Animais', href: '/rebanho', icon: '🐄' },
+      { label: 'Reprodução', href: '/reproducao', icon: '🗓️' },
+      { label: 'Pesagem', href: '/pesagem', icon: '⚖️' },
+      { label: 'Sanitário', href: '/sanitario', icon: '💉' },
+    ],
+  },
+  {
+    title: 'Produção',
+    items: [
+      { label: 'Leite', href: '/leite', icon: '🥛' },
+      { label: 'Financeiro', href: '/financeiro', icon: '💰' },
+      { label: 'Relatórios', href: '/relatorios', icon: '📊' },
+    ],
+  },
+  {
+    title: 'IA',
+    items: [
+      { label: 'IA Veterinária', href: '/ia', icon: '🤖' },
+    ],
+  },
 ]
 
 const BOTTOM_ITEMS: NavItem[] = [
@@ -44,7 +64,6 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
@@ -52,7 +71,6 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
         />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
         'fixed top-0 left-0 h-full w-64 bg-primary-950 z-30 flex flex-col transition-transform duration-300',
         'lg:translate-x-0',
@@ -70,28 +88,36 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto scrollbar-thin">
-          <p className="px-3 py-2 text-xs font-semibold text-primary-500 uppercase tracking-wider">Menu Principal</p>
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
-                isActive(item.href)
-                  ? 'bg-primary-700 text-white shadow-sm'
-                  : 'text-primary-200 hover:bg-primary-800 hover:text-white'
-              )}
-            >
-              <span className="text-base w-5 text-center">{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
-              {item.href === '/alertas' && alertCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {alertCount > 99 ? '99+' : alertCount}
-                </span>
-              )}
-            </Link>
+        <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto scrollbar-thin">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.title}>
+              <p className="px-3 mb-1 text-[10px] font-semibold text-primary-500 uppercase tracking-widest">
+                {group.title}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                      isActive(item.href)
+                        ? 'bg-primary-700 text-white shadow-sm'
+                        : 'text-primary-200 hover:bg-primary-800 hover:text-white'
+                    )}
+                  >
+                    <span className="text-base w-5 text-center">{item.icon}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.href === '/alertas' && alertCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {alertCount > 99 ? '99+' : alertCount}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
