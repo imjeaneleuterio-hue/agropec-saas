@@ -33,7 +33,16 @@ export async function POST(request: Request) {
       },
     })
 
-    const jwt = await signToken({ userId: user.id, email: user.email, name: user.name })
+    const userWithFarm = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { farms: { take: 1 } },
+    })
+    const jwt = await signToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role as any,
+      farmId: userWithFarm?.farms[0]?.id,
+    })
     await setAuthCookie(jwt)
 
     return NextResponse.json({ message: 'ok' })
