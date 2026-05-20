@@ -147,9 +147,14 @@ export default function RebanhoPage() {
                   <tr key={animal.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-700 font-bold text-xs flex-shrink-0">
-                          {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
-                        </div>
+                        {animal.photoUrl ? (
+                          <img src={animal.photoUrl} alt={animal.name ?? animal.tag}
+                            className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center text-primary-700 font-bold text-xs flex-shrink-0">
+                            {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
+                          </div>
+                        )}
                         <div>
                           <p className="font-medium text-gray-900">{animal.name ?? `Animal #${animal.tag}`}</p>
                           <p className="text-xs text-gray-500">Brinco #{animal.tag}</p>
@@ -188,9 +193,14 @@ export default function RebanhoPage() {
             <Link key={animal.id} href={`/rebanho/${animal.id}`}
               className="card-hover p-4 flex flex-col gap-3">
               <div className="flex items-start justify-between">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center text-2xl">
-                  {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
-                </div>
+                {animal.photoUrl ? (
+                  <img src={animal.photoUrl} alt={animal.name ?? animal.tag}
+                    className="w-12 h-12 rounded-xl object-cover" />
+                ) : (
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center text-2xl">
+                    {animal.sex === 'FEMALE' ? '🐄' : '🐂'}
+                  </div>
+                )}
                 <span className={`badge ${getStatusColor(animal.status)}`}>{LABELS.status[animal.status]}</span>
               </div>
               <div>
