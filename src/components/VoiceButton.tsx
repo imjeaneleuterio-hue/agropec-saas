@@ -334,7 +334,7 @@ export function VoiceButton() {
                 <div className="flex gap-3">
                   <button
                     onClick={confirmarRegistro}
-                    disabled={!SEM_ANIMAL.includes(interpretacao.tipo) && !interpretacao?.animal}
+                    disabled={!interpretacao || (!SEM_ANIMAL.includes(interpretacao.tipo) && !interpretacao.animal)}
                     className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ✓ Confirmar Registro
