@@ -9,7 +9,7 @@ export default function RebanhoPage() {
   const [animals, setAnimals] = useState<Animal[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filterType, setFilterType] = useState<string>('ALL')
+  const [filterType, setFilterType] = useState<string>('DAIRY')
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
   const [filterSex, setFilterSex] = useState<string>('ALL')
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')

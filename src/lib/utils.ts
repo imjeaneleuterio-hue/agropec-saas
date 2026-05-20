@@ -66,7 +66,7 @@ export function calcAgeInMonths(birthDate: string | Date): number {
 }
 
 export const BREEDS_DAIRY = [
-  'Holandesa', 'Jersey', 'Gir Leiteiro', 'Girolando',
+  'Holandesa', 'Jersey', 'Gir Leiteiro', 'Girolando', 'Gersolando',
   'Pardo Suíço', 'Ayrshire', 'Guzerá', 'Sindi', 'Mestiça',
 ]
 
