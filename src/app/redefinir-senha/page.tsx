@@ -62,11 +62,9 @@ function RedefinirContent() {
         <h1 className="text-2xl font-bold text-gray-900">Nova senha</h1>
         <p className="text-gray-500 text-sm mt-2">Escolha uma nova senha para sua conta</p>
       </div>
-
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
       )}
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="label">Nova senha</label>
@@ -93,8 +91,8 @@ function RedefinirContent() {
 
 export default function RedefinirSenhaPage() {
   return (
-    <div className="w-full max-w-md">
-      <div className="bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-950 via-primary-900 to-primary-700 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
         <Suspense>
           <RedefinirContent />
         </Suspense>
