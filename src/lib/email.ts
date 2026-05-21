@@ -56,6 +56,10 @@ export async function sendVerificationEmail(email: string, name: string, token: 
           Confirmar cadastro
         </a>
         <p style="color:#6b7280;font-size:13px">Este link expira em 24 horas.</p>
+        <p style="color:#9ca3af;font-size:12px;margin-top:8px">
+          Se o botão não funcionar, copie e cole este link no navegador:<br/>
+          <a href="${link}" style="color:#16a34a;word-break:break-all">${link}</a>
+        </p>
         <p style="color:#9ca3af;font-size:12px;margin-top:32px;border-top:1px solid #f3f4f6;padding-top:16px">
           Se você não criou uma conta no ${APP_NAME}, ignore este e-mail.
         </p>
