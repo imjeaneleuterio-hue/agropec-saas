@@ -89,6 +89,17 @@ export async function POST(request: Request) {
         })
       }
 
+      // Cancela alerta de secagem anterior (novo ciclo ou secagem realizada)
+      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'DRY_OFF'].includes(data.type)) {
+        await prisma.alert.deleteMany({
+          where: {
+            farmId,
+            animalId: data.animalId,
+            title: { startsWith: 'Secar Vaca' },
+          },
+        })
+      }
+
       // Alerta de parto previsto
       if ((data.type === 'INSEMINATION' || data.type === 'NATURAL_MATING' || data.type === 'PREGNANCY_CHECK_POSITIVE') && expectedCalving) {
         const partoTitle = `Parto Previsto — ${animalLabel}`
@@ -105,6 +116,23 @@ export async function POST(request: Request) {
           },
         })
         sendPushToFarm(farmId, { title: partoTitle, body: partoDesc, url: '/dashboard/alertas' }).catch(() => {})
+
+        // Alerta de secagem — 60 dias antes do parto
+        const secagemDate = addDays(expectedCalving, -60)
+        const secagemTitle = `Secar Vaca — ${animalLabel}`
+        const secagemDesc = `Secar a vaca ${animalLabel} 60 dias antes do parto. Parto previsto: ${expectedCalving.toLocaleDateString('pt-BR')}`
+        await prisma.alert.create({
+          data: {
+            farmId,
+            type: 'REPRODUCTIVE',
+            title: secagemTitle,
+            description: secagemDesc,
+            dueDate: secagemDate,
+            priority: 'HIGH',
+            animalId: data.animalId,
+          },
+        })
+        sendPushToFarm(farmId, { title: secagemTitle, body: secagemDesc, url: '/dashboard/alertas' }).catch(() => {})
       }
 
       // Alerta de previsão de cio
