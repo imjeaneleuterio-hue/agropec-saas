@@ -1,6 +1,6 @@
 export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'PRODUCER' | 'VETERINARIAN' | 'EMPLOYEE'
 export type FarmType = 'DAIRY' | 'BEEF' | 'MIXED'
-export type AnimalType = 'DAIRY' | 'BEEF'
+export type AnimalType = 'DAIRY' | 'BEEF' | 'CALF'
 export type Sex = 'MALE' | 'FEMALE'
 export type AnimalStatus = 'ACTIVE' | 'SOLD' | 'DEAD' | 'TRANSFERRED'
 export type ReproductiveEventType =

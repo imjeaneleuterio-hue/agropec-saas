@@ -36,9 +36,11 @@ export async function getUserPlan(userId: string): Promise<PlanKey> {
   const sub = user.subscription
   if (!sub || (sub.status !== 'ACTIVE' && sub.status !== 'CANCELLED')) return 'FREE'
   if (sub.endDate && sub.endDate < new Date()) return 'FREE'
-  const plan = sub.plan as PlanKey
-  if (plan !== 'PRO' && plan !== 'PREMIUM') return 'FREE'
-  return plan
+  const PLAN_MAP: Record<string, PlanKey> = {
+    PRO: 'PRO', PREMIUM: 'PREMIUM',
+    PROFESSIONAL: 'PREMIUM', ENTERPRISE: 'PREMIUM', BASIC: 'PRO',
+  }
+  return PLAN_MAP[sub.plan] ?? 'FREE'
 }
 
 export function canAccessModule(plan: PlanKey, module: string): boolean {

@@ -24,6 +24,7 @@ const NAV_GROUPS = [
     title: 'Rebanho',
     items: [
       { label: 'Animais',    href: '/rebanho',    icon: '🐄' },
+      { label: 'Bezerros',   href: '/bezerros',   icon: '🐮' },
       { label: 'Reprodução', href: '/reproducao', icon: '🗓️' },
       { label: 'Pesagem',    href: '/pesagem',    icon: '⚖️' },
       { label: 'Sanitário',  href: '/sanitario',  icon: '💉' },

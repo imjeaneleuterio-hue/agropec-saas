@@ -84,7 +84,7 @@ export const FINANCIAL_CATEGORIES_EXPENSE = [
 ]
 
 export const LABELS = {
-  animalType: { DAIRY: 'Leiteira', BEEF: 'Leiteira' },
+  animalType: { DAIRY: 'Leiteira', BEEF: 'Leiteira', CALF: 'Bezerro' },
   sex: { MALE: 'Macho', FEMALE: 'Fêmea' },
   status: { ACTIVE: 'Ativo', SOLD: 'Vendido', DEAD: 'Morto', TRANSFERRED: 'Transferido' },
   farmType: { DAIRY: 'Pecuária Leiteira', BEEF: 'Pecuária Leiteira', MIXED: 'Pecuária Leiteira' },

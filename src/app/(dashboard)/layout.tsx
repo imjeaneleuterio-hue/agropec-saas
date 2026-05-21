@@ -46,9 +46,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setUser(d.data)
         setFarms(d.data.farms ?? [])
         setRole(d.data.role ?? '')
-        const sub = d.data.subscription
-        if (sub?.status === 'ACTIVE' && (sub.plan === 'PRO' || sub.plan === 'PREMIUM')) {
-          setPlan(sub.plan as PlanKey)
+        const userRole = d.data.role ?? ''
+        if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+          setPlan('PREMIUM')
+        } else {
+          const sub = d.data.subscription
+          if (sub?.status === 'ACTIVE') {
+            const PLAN_MAP: Record<string, PlanKey> = {
+              PRO: 'PRO', PREMIUM: 'PREMIUM',
+              PROFESSIONAL: 'PREMIUM', ENTERPRISE: 'PREMIUM', BASIC: 'PRO',
+            }
+            const mapped = PLAN_MAP[sub.plan]
+            if (mapped) setPlan(mapped)
+          }
         }
       }
     })
