@@ -47,6 +47,7 @@ model Farm {
   alerts           Alert[]
   dailyMilkTotals  DailyMilkTotal[]
   milkPrices       MilkPrice[]
+  farmNotes        FarmNote[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -224,6 +225,16 @@ model PushSubscription {
 
   @@unique([userId, endpoint])
   @@index([userId])
+}
+
+model FarmNote {
+  id        String   @id @default(cuid())
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([farmId])
 }
 
 model AnimalNote {

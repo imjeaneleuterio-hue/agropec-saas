@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatCurrency, formatNumber, formatDate } from '@/lib/utils'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import Link from 'next/link'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
 
@@ -30,11 +30,18 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [milkChart, setMilkChart] = useState<DayMilk[]>([])
   const [loading, setLoading] = useState(true)
+  const [farmNotes, setFarmNotes] = useState<{ id: string; content: string; createdAt: string }[]>([])
+  const [newNote, setNewNote] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
     const today = new Date()
     const sevenDaysAgo = new Date(today)
     sevenDaysAgo.setDate(today.getDate() - 6)
+
+    fetch('/api/fazenda/notas').then((r) => r.json()).then((res) => {
+      if (Array.isArray(res.data)) setFarmNotes(res.data)
+    }).catch(() => {})
 
     Promise.all([
       fetch('/api/dashboard').then((r) => r.json()),
@@ -67,13 +74,35 @@ export default function DashboardPage() {
   }, [])
 
   const balance = stats.monthIncome - stats.monthExpense
-
-  const piData = [
-    { name: 'Leiteiras', value: stats.dairyAnimals, color: '#16a34a' },
-    { name: 'Outros', value: Math.max(0, stats.activeAnimals - stats.dairyAnimals), color: '#86efac' },
-  ].filter((d) => d.value > 0)
-
   const hasMilkData = milkChart.some((d) => d.liters > 0)
+
+  async function handleAddNote() {
+    if (!newNote.trim()) return
+    setSavingNote(true)
+    try {
+      const res = await fetch('/api/fazenda/notas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newNote.trim() }),
+      })
+      const data = await res.json()
+      if (data.data) {
+        setFarmNotes((prev) => [data.data, ...prev])
+        setNewNote('')
+      }
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    await fetch('/api/fazenda/notas', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ noteId }),
+    })
+    setFarmNotes((prev) => prev.filter((n) => n.id !== noteId))
+  }
 
   return (
     <div className="space-y-6">
@@ -199,39 +228,39 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="card p-5">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="section-title">Distribuição do Rebanho</h2>
+        <div className="card p-5 flex flex-col gap-3">
+          <h2 className="section-title">Anotações da Fazenda</h2>
+          <div className="flex gap-2">
+            <textarea
+              className="input resize-none text-sm flex-1"
+              rows={2}
+              placeholder="Escreva uma anotação..."
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddNote() } }}
+            />
+            <button
+              onClick={handleAddNote}
+              disabled={savingNote || !newNote.trim()}
+              className="btn-primary text-sm px-3 self-end"
+            >
+              {savingNote ? '...' : 'Salvar'}
+            </button>
           </div>
-          {stats.totalAnimals === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <p className="text-3xl mb-2">🐄</p>
-              <p className="text-sm">Nenhum animal cadastrado.</p>
-              <Link href="/rebanho/novo" className="text-primary-600 text-sm hover:underline mt-1">Cadastrar animal →</Link>
-            </div>
-          ) : (
-            <>
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={piData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" strokeWidth={2}>
-                    {piData.map((entry, i) => <Cell key={i} fill={entry.color}/>)}
-                  </Pie>
-                  <Tooltip formatter={(v: number, name: string) => [v, name]}/>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-1.5 mt-2">
-                {piData.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }}/>
-                      <span className="text-gray-600">{item.name}</span>
-                    </div>
-                    <span className="font-semibold text-gray-800">{item.value}</span>
-                  </div>
-                ))}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {farmNotes.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">Nenhuma anotação ainda.</p>
+            ) : farmNotes.map((note) => (
+              <div key={note.id} className="flex items-start justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap flex-1">{note.content}</p>
+                <button
+                  onClick={() => handleDeleteNote(note.id)}
+                  className="text-gray-300 hover:text-red-400 transition-colors text-xs shrink-0 mt-0.5"
+                  title="Excluir"
+                >✕</button>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </div>
       </div>
     </div>
