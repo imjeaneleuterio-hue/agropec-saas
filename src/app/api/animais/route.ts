@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { animalSchema } from '@/lib/validations'
+import { getUserPlan, getAnimalLimit } from '@/lib/plans'
 
 export async function GET(request: Request) {
   try {
@@ -68,6 +69,18 @@ export async function POST(request: Request) {
 
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    const plan = await getUserPlan(session.userId)
+    const limit = getAnimalLimit(plan)
+    if (limit !== null) {
+      const count = await prisma.animal.count({ where: { farmId } })
+      if (count >= limit) {
+        return NextResponse.json(
+          { error: `Limite de ${limit} animais atingido. Faça upgrade para cadastrar mais.`, upgrade: true },
+          { status: 403 }
+        )
+      }
+    }
 
     const existing = await prisma.animal.findUnique({ where: { farmId_tag: { farmId, tag: parsed.data.tag } } })
     if (existing) {

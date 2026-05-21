@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
+import { getUserPlan, canAccessModule } from '@/lib/plans'
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -9,6 +10,10 @@ export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    const plan = await getUserPlan(session.userId)
+    if (!canAccessModule(plan, 'relatorios')) {
+      return NextResponse.json({ error: 'Módulo disponível no plano Pro ou superior.', upgrade: true }, { status: 403 })
+    }
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') ?? 'milk'

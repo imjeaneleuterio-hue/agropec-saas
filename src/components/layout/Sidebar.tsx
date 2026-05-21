@@ -1,36 +1,38 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import type { PlanKey } from '@/lib/plans'
 
-interface NavItem {
-  label: string
-  href: string
-  icon: string
+const LOCKED_BY_PLAN: Record<string, PlanKey[]> = {
+  '/reproducao': ['FREE'],
+  '/sanitario':  ['FREE'],
+  '/financeiro': ['FREE'],
+  '/relatorios': ['FREE'],
+  '/ia':         ['FREE'],
 }
 
 const NAV_GROUPS = [
   {
     title: 'Principal',
     items: [
-      { label: 'Início', href: '/dashboard', icon: '🏠' },
-      { label: 'Alertas', href: '/alertas', icon: '🔔' },
+      { label: 'Início',   href: '/dashboard', icon: '🏠' },
+      { label: 'Alertas',  href: '/alertas',   icon: '🔔' },
     ],
   },
   {
     title: 'Rebanho',
     items: [
-      { label: 'Animais', href: '/rebanho', icon: '🐄' },
+      { label: 'Animais',    href: '/rebanho',    icon: '🐄' },
       { label: 'Reprodução', href: '/reproducao', icon: '🗓️' },
-      { label: 'Pesagem', href: '/pesagem', icon: '⚖️' },
-      { label: 'Sanitário', href: '/sanitario', icon: '💉' },
+      { label: 'Pesagem',    href: '/pesagem',    icon: '⚖️' },
+      { label: 'Sanitário',  href: '/sanitario',  icon: '💉' },
     ],
   },
   {
     title: 'Produção',
     items: [
-      { label: 'Leite', href: '/leite', icon: '🥛' },
+      { label: 'Leite',      href: '/leite',      icon: '🥛' },
       { label: 'Financeiro', href: '/financeiro', icon: '💰' },
       { label: 'Relatórios', href: '/relatorios', icon: '📊' },
     ],
@@ -43,8 +45,8 @@ const NAV_GROUPS = [
   },
 ]
 
-const BOTTOM_ITEMS: NavItem[] = [
-  { label: 'Administração', href: '/admin', icon: '⚙️' },
+const BOTTOM_ITEMS = [
+  { label: 'Administração', href: '/admin',         icon: '⚙️' },
   { label: 'Configurações', href: '/configuracoes', icon: '🔧' },
 ]
 
@@ -52,23 +54,35 @@ interface SidebarProps {
   alertCount?: number
   isOpen?: boolean
   onClose?: () => void
+  plan?: PlanKey
 }
 
-export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps) {
+export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE' }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard'
     return pathname.startsWith(href)
   }
 
+  function isLocked(href: string) {
+    return LOCKED_BY_PLAN[href]?.includes(plan) ?? false
+  }
+
+  function handleNav(href: string) {
+    onClose?.()
+    if (isLocked(href)) {
+      router.push('/planos')
+    } else {
+      router.push(href)
+    }
+  }
+
   return (
     <>
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={onClose} />
       )}
 
       <aside className={cn(
@@ -95,27 +109,35 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
                 {group.title}
               </p>
               <div className="space-y-0.5">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onClose}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
-                      isActive(item.href)
-                        ? 'bg-primary-700 text-white shadow-sm'
-                        : 'text-primary-200 hover:bg-primary-800 hover:text-white'
-                    )}
-                  >
-                    <span className="text-base w-5 text-center">{item.icon}</span>
-                    <span className="flex-1">{item.label}</span>
-                    {item.href === '/alertas' && alertCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                        {alertCount > 99 ? '99+' : alertCount}
-                      </span>
-                    )}
-                  </Link>
-                ))}
+                {group.items.map((item) => {
+                  const locked = isLocked(item.href)
+                  const active = isActive(item.href)
+                  return (
+                    <button
+                      key={item.href}
+                      onClick={() => handleNav(item.href)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-left',
+                        active && !locked
+                          ? 'bg-primary-700 text-white shadow-sm'
+                          : locked
+                          ? 'text-primary-500 hover:bg-primary-800/50 hover:text-primary-300'
+                          : 'text-primary-200 hover:bg-primary-800 hover:text-white'
+                      )}
+                    >
+                      <span className="text-base w-5 text-center">{item.icon}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {item.href === '/alertas' && alertCount > 0 && !locked && (
+                        <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                          {alertCount > 99 ? '99+' : alertCount}
+                        </span>
+                      )}
+                      {locked && (
+                        <span className="text-xs text-primary-500">🔒</span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           ))}
@@ -124,12 +146,11 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
         {/* Bottom */}
         <div className="px-3 pb-4 border-t border-primary-800 pt-3 space-y-0.5">
           {BOTTOM_ITEMS.map((item) => (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
-              onClick={onClose}
+              onClick={() => handleNav(item.href)}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-left',
                 isActive(item.href)
                   ? 'bg-primary-700 text-white'
                   : 'text-primary-300 hover:bg-primary-800 hover:text-white'
@@ -137,8 +158,21 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose }: SidebarProps
             >
               <span className="text-base w-5 text-center">{item.icon}</span>
               <span>{item.label}</span>
-            </Link>
+            </button>
           ))}
+          {/* Link para planos sempre visível */}
+          <button
+            onClick={() => { onClose?.(); router.push('/planos') }}
+            className={cn(
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-left',
+              isActive('/planos')
+                ? 'bg-primary-700 text-white'
+                : 'text-primary-300 hover:bg-primary-800 hover:text-white'
+            )}
+          >
+            <span className="text-base w-5 text-center">⭐</span>
+            <span>Planos</span>
+          </button>
         </div>
       </aside>
     </>

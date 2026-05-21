@@ -118,7 +118,7 @@ export const LABELS = {
     ABORTION: 'Aborto',
   },
   paymentStatus: { PENDING: 'Pendente', PAID: 'Pago', OVERDUE: 'Vencido', CANCELLED: 'Cancelado' },
-  plan: { FREE: 'Gratuito', BASIC: 'Básico', PROFESSIONAL: 'Profissional', ENTERPRISE: 'Empresarial' },
+  plan: { FREE: 'Gratuito', PRO: 'Pro', PREMIUM: 'Premium', BASIC: 'Básico', PROFESSIONAL: 'Profissional', ENTERPRISE: 'Empresarial' },
   role: { SUPER_ADMIN: 'Super Admin', ADMIN: 'Admin', PRODUCER: 'Produtor', VETERINARIAN: 'Veterinário', EMPLOYEE: 'Funcionário' },
 } as const
 

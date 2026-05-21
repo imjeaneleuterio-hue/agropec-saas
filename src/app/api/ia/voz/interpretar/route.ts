@@ -66,6 +66,11 @@ export async function POST(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    const { getUserPlan, canAccessModule } = await import('@/lib/plans')
+    const plan = await getUserPlan(session.userId)
+    if (!canAccessModule(plan, 'ia_voz')) {
+      return NextResponse.json({ error: 'Comando de voz disponível no plano Premium.', upgrade: true }, { status: 403 })
+    }
 
     const { texto } = await request.json()
     if (!texto) return NextResponse.json({ error: 'Texto obrigatório' }, { status: 400 })

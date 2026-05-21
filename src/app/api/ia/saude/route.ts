@@ -21,6 +21,11 @@ export async function POST(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    const { getUserPlan, canAccessModule } = await import('@/lib/plans')
+    const plan = await getUserPlan(session.userId)
+    if (!canAccessModule(plan, 'ia')) {
+      return NextResponse.json({ error: 'Módulo disponível no plano Pro ou superior.', upgrade: true }, { status: 403 })
+    }
 
     const { mensagem, historico } = await request.json()
     if (!mensagem) return NextResponse.json({ error: 'Mensagem obrigatória' }, { status: 400 })
