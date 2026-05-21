@@ -36,6 +36,9 @@ export default function ConfiguracoesPage() {
   const [farmForm, setFarmForm] = useState({ name: '', cnpj: '', address: '', city: '', state: '', cep: '', hectares: '', type: 'MIXED' })
   // Password form
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSaved, setPwSaved] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -63,6 +66,30 @@ export default function ConfiguracoesPage() {
   }, [])
 
   function showSaved() { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+
+  async function changePassword() {
+    setPwError('')
+    if (!pwForm.current) { setPwError('Informe a senha atual'); return }
+    if (pwForm.next.length < 6) { setPwError('Nova senha deve ter pelo menos 6 caracteres'); return }
+    if (pwForm.next !== pwForm.confirm) { setPwError('As senhas não conferem'); return }
+    setPwSaving(true)
+    try {
+      const res = await fetch('/api/auth/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pwForm),
+      })
+      const data = await res.json()
+      if (!res.ok) { setPwError(data.error ?? 'Erro ao alterar senha'); return }
+      setPwSaved(true)
+      setPwForm({ current: '', next: '', confirm: '' })
+      setTimeout(() => setPwSaved(false), 3000)
+    } catch {
+      setPwError('Erro de conexão. Tente novamente.')
+    } finally {
+      setPwSaving(false)
+    }
+  }
 
   async function handleDeleteAccount() {
     setDeleting(true)
@@ -289,6 +316,16 @@ export default function ConfiguracoesPage() {
           <h2 className="section-title">Segurança da Conta</h2>
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Alterar Senha</h3>
+            {pwSaved && (
+              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                ✓ Senha alterada com sucesso!
+              </div>
+            )}
+            {pwError && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {pwError}
+              </div>
+            )}
             <div className="space-y-3">
               <div>
                 <label className="label">Senha atual</label>
@@ -306,7 +343,13 @@ export default function ConfiguracoesPage() {
                   value={pwForm.confirm} onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })} />
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Função de troca de senha em desenvolvimento.</p>
+            <button
+              onClick={changePassword}
+              disabled={pwSaving}
+              className="btn-primary mt-4"
+            >
+              {pwSaving ? 'Salvando...' : 'Alterar Senha'}
+            </button>
           </div>
 
           <div className="pt-4 border-t border-red-100">
