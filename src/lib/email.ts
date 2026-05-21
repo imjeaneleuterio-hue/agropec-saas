@@ -39,6 +39,35 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
   })
 }
 
+export async function sendRenewalReminderEmail(email: string, name: string, endDate: Date, planName: string) {
+  const dias = Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const dataFmt = endDate.toLocaleDateString('pt-BR')
+  const link = `${APP_URL}/planos`
+
+  await transporter.sendMail({
+    from: `${APP_NAME} <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: `Seu plano ${planName} vence em ${dias} dias — ${APP_NAME}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+        <h2 style="color:#166534;margin-bottom:8px">${APP_NAME}</h2>
+        <h3 style="color:#111827;font-size:20px;margin-bottom:16px">Lembrete de renovação</h3>
+        <p style="color:#374151;font-size:15px">Olá, <strong>${name}</strong>!</p>
+        <p style="color:#374151;font-size:15px">
+          Seu plano <strong>${planName}</strong> vence em <strong>${dias} dias</strong> (${dataFmt}).
+        </p>
+        <p style="color:#374151;font-size:15px">Renove agora para não perder o acesso aos módulos.</p>
+        <a href="${link}" style="display:inline-block;margin:24px 0;padding:14px 28px;background:#16a34a;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px">
+          Renovar meu plano
+        </a>
+        <p style="color:#9ca3af;font-size:12px;margin-top:32px;border-top:1px solid #f3f4f6;padding-top:16px">
+          Se já renovou, ignore este e-mail.
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function sendVerificationEmail(email: string, name: string, token: string, baseUrl?: string) {
   const link = `${baseUrl ?? APP_URL}/api/auth/verificar?token=${token}`
 
