@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { handleTrialResponse } from '@/lib/trialEvent'
+import { TrialBanner } from '@/components/TrialBanner'
 
 type Tab = 'saude' | 'reproducao'
 
@@ -31,6 +32,7 @@ export default function IAPage() {
           Diagnóstico de doenças e análise reprodutiva com inteligência artificial
         </p>
       </div>
+      <TrialBanner module="ia" />
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-gray-200">

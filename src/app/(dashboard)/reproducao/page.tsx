@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { formatDate, LABELS, cn, daysFromToday } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
+import { TrialBanner } from '@/components/TrialBanner'
 import type { ReproductiveEvent, Animal } from '@/types'
 
 const EVENT_COLORS: Record<string, string> = {
@@ -138,6 +139,7 @@ export default function ReproducaoPage() {
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Novo Evento</button>
       </div>
+      <TrialBanner module="reproducao" />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

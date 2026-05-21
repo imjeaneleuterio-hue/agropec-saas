@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { formatDate, LABELS, formatCurrency, daysFromToday } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
+import { TrialBanner } from '@/components/TrialBanner'
 import type { HealthRecord, Animal } from '@/types'
 
 const TYPE_ICONS: Record<string, string> = {
@@ -124,6 +125,7 @@ export default function SanitarioPage() {
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Novo Registro</button>
       </div>
+      <TrialBanner module="sanitario" />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

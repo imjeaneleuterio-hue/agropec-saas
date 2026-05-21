@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { formatDate, formatCurrency, LABELS, getStatusColor, FINANCIAL_CATEGORIES_INCOME, FINANCIAL_CATEGORIES_EXPENSE, cn } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
+import { TrialBanner } from '@/components/TrialBanner'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import type { FinancialRecord } from '@/types'
 
@@ -121,6 +122,7 @@ export default function FinanceiroPage() {
 
   return (
     <div className="space-y-6">
+      <TrialBanner module="financeiro" />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Financeiro Rural</h1>

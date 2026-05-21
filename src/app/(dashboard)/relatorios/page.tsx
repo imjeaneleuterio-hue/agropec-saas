@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { formatCurrency, formatNumber } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
+import { TrialBanner } from '@/components/TrialBanner'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const REPORT_TYPES = [
@@ -84,6 +85,7 @@ export default function RelatoriosPage() {
 
   return (
     <div className="space-y-6">
+      <TrialBanner module="relatorios" />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Relatórios</h1>
