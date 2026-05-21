@@ -27,7 +27,13 @@ export const PLANS = {
 } as const
 
 export async function getUserPlan(userId: string): Promise<PlanKey> {
-  const sub = await prisma.subscription.findUnique({ where: { userId } })
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true, subscription: true },
+  })
+  if (!user) return 'FREE'
+  if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return 'PREMIUM'
+  const sub = user.subscription
   if (!sub || sub.status !== 'ACTIVE') return 'FREE'
   if (sub.endDate && sub.endDate < new Date()) return 'FREE'
   const plan = sub.plan as PlanKey
