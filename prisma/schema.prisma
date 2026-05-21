@@ -74,6 +74,7 @@ model Animal {
   milkProductions    MilkProduction[]
   reproductiveEvents ReproductiveEvent[]
   healthRecords      HealthRecord[]
+  notes              AnimalNote[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 
@@ -223,6 +224,17 @@ model PushSubscription {
 
   @@unique([userId, endpoint])
   @@index([userId])
+}
+
+model AnimalNote {
+  id        String   @id @default(cuid())
+  animalId  String
+  animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([animalId])
 }
 
 model TrialUsage {

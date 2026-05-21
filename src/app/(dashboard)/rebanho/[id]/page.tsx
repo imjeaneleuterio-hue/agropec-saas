@@ -7,7 +7,7 @@ import { formatDate, calcAge, getStatusColor, LABELS, formatCurrency, formatNumb
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { Animal, WeightRecord, MilkProduction, HealthRecord, ReproductiveEvent } from '@/types'
 
-const TABS = ['Visão Geral', 'Produção de Leite', 'Pesagens', 'Saúde', 'Reprodução']
+const TABS = ['Visão Geral', 'Produção de Leite', 'Pesagens', 'Saúde', 'Reprodução', 'Anotações']
 
 type AnimalFull = Animal & {
   weightRecords: WeightRecord[]
@@ -22,6 +22,9 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
   const [activeTab, setActiveTab] = useState(0)
   const [animal, setAnimal] = useState<AnimalFull | null>(null)
   const [loading, setLoading] = useState(true)
+  const [notes, setNotes] = useState<{ id: string; content: string; createdAt: string }[]>([])
+  const [newNote, setNewNote] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -35,6 +38,13 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
     status: 'ACTIVE', birthDate: '', purchaseDate: '', purchasePrice: '', observations: '',
     photoUrl: '',
   })
+
+  useEffect(() => {
+    fetch(`/api/animais/${id}/notas`)
+      .then(r => r.json())
+      .then(d => { if (d.data) setNotes(d.data) })
+      .catch(() => {})
+  }, [id])
 
   useEffect(() => {
     fetch(`/api/animais/${id}`)
@@ -101,6 +111,32 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleAddNote(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newNote.trim()) return
+    setSavingNote(true)
+    try {
+      const res = await fetch(`/api/animais/${id}/notas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newNote }),
+      })
+      const data = await res.json()
+      if (res.ok) { setNotes(prev => [data.data, ...prev]); setNewNote('') }
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    await fetch(`/api/animais/${id}/notas`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ noteId }),
+    })
+    setNotes(prev => prev.filter(n => n.id !== noteId))
   }
 
   async function handleDelete() {
@@ -331,6 +367,40 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                 )}
               </div>
               <p className="text-sm text-gray-500">{formatDate(r.date)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 5 && (
+        <div className="space-y-4">
+          <form onSubmit={handleAddNote} className="card p-4 flex gap-3">
+            <textarea
+              className="input-field flex-1 resize-none"
+              rows={2}
+              placeholder="Nova anotação..."
+              value={newNote}
+              onChange={e => setNewNote(e.target.value)}
+            />
+            <button type="submit" disabled={savingNote || !newNote.trim()} className="btn-primary px-4 self-end">
+              {savingNote ? '...' : 'Salvar'}
+            </button>
+          </form>
+
+          {notes.length === 0 ? (
+            <div className="card p-8 text-center text-gray-400 text-sm">Nenhuma anotação ainda.</div>
+          ) : notes.map(note => (
+            <div key={note.id} className="card p-4 flex justify-between items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
+                <p className="text-xs text-gray-400 mt-1">{formatDate(note.createdAt)}</p>
+              </div>
+              <button
+                onClick={() => handleDeleteNote(note.id)}
+                className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none flex-shrink-0"
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>
