@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { PLANS } from '@/lib/plans'
 import type { PlanKey } from '@/lib/plans'
 
-type Sub = { plan: string; status: string; endDate?: string | null }
+type Sub = { plan: string; status: string; endDate?: string | null; preapprovalId?: string | null }
 
 const FEATURES = {
   FREE: [
@@ -55,6 +55,8 @@ function PlanosContent() {
   const status = searchParams.get('status')
   const [sub, setSub] = useState<Sub | null>(null)
   const [loading, setLoading] = useState<PlanKey | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelMsg, setCancelMsg] = useState('')
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => {
@@ -66,6 +68,25 @@ function PlanosContent() {
     sub?.status === 'ACTIVE' && (sub.plan === 'PRO' || sub.plan === 'PREMIUM')
       ? (sub.plan as PlanKey)
       : 'FREE'
+
+  async function handleCancelar() {
+    if (!confirm('Confirmar cancelamento? Você ainda terá acesso até o fim do período pago.')) return
+    setCancelling(true)
+    try {
+      const res = await fetch('/api/planos/cancelar', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setCancelMsg(data.message)
+        setSub((prev) => prev ? { ...prev, status: 'CANCELLED' } : prev)
+      } else {
+        alert(data.error ?? 'Erro ao cancelar')
+      }
+    } catch {
+      alert('Erro de conexão')
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   async function handleCheckout(plan: PlanKey) {
     if (plan === 'FREE') return
@@ -185,9 +206,36 @@ function PlanosContent() {
         })}
       </div>
 
+      {cancelMsg && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm">
+          {cancelMsg}
+        </div>
+      )}
+
+      {currentPlan !== 'FREE' && sub?.status !== 'CANCELLED' && (
+        <div className="text-center">
+          <button
+            onClick={handleCancelar}
+            disabled={cancelling}
+            className="text-sm text-red-500 hover:text-red-700 hover:underline disabled:opacity-50"
+          >
+            {cancelling ? 'Cancelando...' : 'Cancelar assinatura'}
+          </button>
+          <p className="text-xs text-gray-400 mt-1">
+            O acesso continua até o fim do período pago.
+          </p>
+        </div>
+      )}
+
+      {sub?.status === 'CANCELLED' && sub.endDate && (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm text-center">
+          Assinatura cancelada. Acesso ativo até {new Date(sub.endDate).toLocaleDateString('pt-BR')}.
+        </div>
+      )}
+
       <p className="text-xs text-gray-400 text-center">
         Pagamentos processados pelo Mercado Pago. PIX, cartão e boleto aceitos.
-        Renovação mensal — cancele quando quiser.
+        Renovação mensal automática — cancele quando quiser.
       </p>
     </div>
   )

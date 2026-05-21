@@ -5,15 +5,15 @@ import type { PlanKey } from '@/lib/plans'
 
 const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN ?? '' })
 
-async function activatePlan(userId: string, plan: PlanKey) {
+async function activatePlan(userId: string, plan: PlanKey, preapprovalId?: string) {
   const existing = await prisma.subscription.findUnique({ where: { userId } })
   const base = existing?.endDate && existing.endDate > new Date() ? existing.endDate : new Date()
   const endDate = new Date(base)
   endDate.setDate(endDate.getDate() + 31)
   await prisma.subscription.upsert({
     where: { userId },
-    update: { plan, status: 'ACTIVE', endDate },
-    create: { userId, plan, status: 'ACTIVE', endDate },
+    update: { plan, status: 'ACTIVE', endDate, ...(preapprovalId && { preapprovalId }) },
+    create: { userId, plan, status: 'ACTIVE', endDate, preapprovalId },
   })
 }
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         const ref = sub.external_reference ?? ''
         const [userId, plan] = ref.split(':') as [string, PlanKey]
         if (userId && (plan === 'PRO' || plan === 'PREMIUM')) {
-          await activatePlan(userId, plan)
+          await activatePlan(userId, plan, id)
         }
       }
 

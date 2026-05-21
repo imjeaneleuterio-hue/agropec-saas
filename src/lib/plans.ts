@@ -34,7 +34,7 @@ export async function getUserPlan(userId: string): Promise<PlanKey> {
   if (!user) return 'FREE'
   if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return 'PREMIUM'
   const sub = user.subscription
-  if (!sub || sub.status !== 'ACTIVE') return 'FREE'
+  if (!sub || (sub.status !== 'ACTIVE' && sub.status !== 'CANCELLED')) return 'FREE'
   if (sub.endDate && sub.endDate < new Date()) return 'FREE'
   const plan = sub.plan as PlanKey
   if (plan !== 'PRO' && plan !== 'PREMIUM') return 'FREE'
