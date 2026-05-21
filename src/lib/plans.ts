@@ -13,7 +13,7 @@ export const PLANS = {
   PRO: {
     key: 'PRO' as PlanKey,
     name: 'Pro',
-    price: 1,
+    price: 39,
     animalLimit: 200,
     lockedModules: ['ia_voz'],
   },
