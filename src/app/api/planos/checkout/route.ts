@@ -45,6 +45,7 @@ export async function POST(request: Request) {
           currency_id: 'BRL',
         },
         back_url: `${baseUrl}/planos?status=aprovado`,
+        notification_url: `${baseUrl}/api/planos/webhook`,
         status: 'pending',
       },
     })
