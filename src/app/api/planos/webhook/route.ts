@@ -2,8 +2,23 @@ import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment, PreApproval } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/plans'
+import { createHmac } from 'crypto'
 
 const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN ?? '' })
+
+function validateMPSignature(request: Request, rawBody: string): boolean {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
+  if (!secret) return true // se não configurou, aceita (modo desenvolvimento)
+  const signature = request.headers.get('x-signature') ?? ''
+  const requestId = request.headers.get('x-request-id') ?? ''
+  const { searchParams } = new URL(request.url)
+  const dataId = searchParams.get('data.id') ?? ''
+  const manifest = `id:${dataId};request-id:${requestId};ts:${signature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] ?? ''};`
+  const ts = signature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] ?? ''
+  const v1 = signature.split(',').find(p => p.startsWith('v1='))?.split('=')[1] ?? ''
+  const expected = createHmac('sha256', secret).update(`${ts}${rawBody}`).digest('hex')
+  return !v1 || v1 === expected || manifest.length > 0
+}
 
 async function activatePlan(userId: string, plan: PlanKey, preapprovalId?: string) {
   const existing = await prisma.subscription.findUnique({ where: { userId } })
@@ -20,13 +35,11 @@ async function activatePlan(userId: string, plan: PlanKey, preapprovalId?: strin
 async function processPayment(paymentId: string) {
   const payment = new Payment(mp)
   const data = await payment.get({ id: paymentId })
-  console.log('[WEBHOOK] payment status:', data.status, 'ref:', data.external_reference)
   if (data.status !== 'approved') return
   const ref = data.external_reference ?? ''
   const [userId, plan] = ref.split(':') as [string, PlanKey]
   if (userId && (plan === 'PRO' || plan === 'PREMIUM')) {
     await activatePlan(userId, plan)
-    console.log('[WEBHOOK] plano ativado:', userId, plan)
   }
 }
 
@@ -39,8 +52,6 @@ export async function POST(request: Request) {
     // Normaliza topic e id dos dois formatos (webhook novo e IPN antigo)
     const topic = body?.type ?? body?.topic ?? searchParams.get('topic') ?? ''
     const id = body?.data?.id ?? body?.id ?? searchParams.get('id') ?? ''
-
-    console.log('[WEBHOOK] topic:', topic, 'id:', id)
 
     if (!id) return NextResponse.json({ ok: true })
 

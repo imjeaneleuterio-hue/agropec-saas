@@ -68,7 +68,6 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error('[LOGIN]', error)
-    const msg = error instanceof Error ? error.message : 'Erro interno do servidor'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

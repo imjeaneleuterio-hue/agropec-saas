@@ -17,8 +17,6 @@ export async function POST(request: Request) {
     const payment = new Payment(mp)
     const data = await payment.get({ id: String(paymentId) })
 
-    console.log('[ATIVAR] payment:', data.id, 'status:', data.status, 'ref:', data.external_reference)
-
     if (data.status !== 'approved') {
       return NextResponse.json({ error: 'Pagamento não aprovado', status: data.status }, { status: 400 })
     }
