@@ -44,7 +44,10 @@ export async function POST(request: Request) {
       },
     })
 
-    await sendVerificationEmail(email, name, verificationToken)
+    const proto = request.headers.get('x-forwarded-proto') ?? 'https'
+    const host = request.headers.get('host') ?? 'agropec-saas.vercel.app'
+    const baseUrl = `${proto}://${host}`
+    await sendVerificationEmail(email, name, verificationToken, baseUrl)
 
     return NextResponse.json(
       { message: 'Conta criada! Verifique seu e-mail para ativar o acesso.' },

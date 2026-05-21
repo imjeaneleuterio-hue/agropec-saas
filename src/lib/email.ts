@@ -39,8 +39,8 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
   })
 }
 
-export async function sendVerificationEmail(email: string, name: string, token: string) {
-  const link = `${APP_URL}/api/auth/verificar?token=${token}`
+export async function sendVerificationEmail(email: string, name: string, token: string, baseUrl?: string) {
+  const link = `${baseUrl ?? APP_URL}/api/auth/verificar?token=${token}`
 
   await transporter.sendMail({
     from: `${APP_NAME} <${process.env.GMAIL_USER}>`,
