@@ -20,7 +20,7 @@ export const PLANS = {
   PREMIUM: {
     key: 'PREMIUM' as PlanKey,
     name: 'Premium',
-    price: 79,
+    price: 1,
     animalLimit: null,
     lockedModules: [],
   },
