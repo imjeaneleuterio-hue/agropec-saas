@@ -46,6 +46,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    const animal = await prisma.animal.findFirst({ where: { id: parsed.data.animalId, farmId } })
+    if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
+
     const data = parsed.data
     const eventDate = new Date(data.date)
 
@@ -60,9 +66,7 @@ export async function POST(request: Request) {
       data: { ...data, date: eventDate, expectedCalving },
     })
 
-    const farmId = await getActiveFarmId(session.userId)
-    if (farmId) {
-      const animal = await prisma.animal.findUnique({ where: { id: data.animalId } })
+    {
       const animalLabel = animal?.name ?? `#${animal?.tag}`
 
       // Cancela previsão de cio pendente quando a vaca entrou em cio, foi coberta ou confirmou prenhez

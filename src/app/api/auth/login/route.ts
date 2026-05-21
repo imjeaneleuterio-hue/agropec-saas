@@ -3,9 +3,19 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signToken } from '@/lib/auth'
 import { loginSchema } from '@/lib/validations'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    const { allowed, retryAfterSeconds } = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${Math.ceil(retryAfterSeconds / 60)} minutos.` },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+      )
+    }
+
     const body = await request.json()
     const parsed = loginSchema.safeParse(body)
     if (!parsed.success) {

@@ -2,9 +2,19 @@ import { NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { checkRateLimit } from '@/lib/rateLimit'
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    const { allowed, retryAfterSeconds } = checkRateLimit(`reset:${ip}`, 5, 60 * 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Muitas tentativas. Tente novamente em ${Math.ceil(retryAfterSeconds / 60)} minutos.` },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
+      )
+    }
+
     const { email } = await request.json()
     if (!email) return NextResponse.json({ error: 'E-mail obrigatório.' }, { status: 400 })
 

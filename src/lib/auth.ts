@@ -2,9 +2,9 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import type { AuthTokenPayload } from '@/types'
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'fallback-secret-change-in-production-32ch'
-)
+const jwtSecretString = process.env.JWT_SECRET
+if (!jwtSecretString) throw new Error('JWT_SECRET environment variable is not set')
+const secret = new TextEncoder().encode(jwtSecretString)
 
 const COOKIE_NAME = 'jeleupec_token'
 const TOKEN_EXPIRY = '7d'

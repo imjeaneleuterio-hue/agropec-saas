@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
 
-    const farmId = body.farmId ?? await getActiveFarmId(session.userId)
+    const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
 
     const existing = await prisma.animal.findUnique({ where: { farmId_tag: { farmId, tag: parsed.data.tag } } })

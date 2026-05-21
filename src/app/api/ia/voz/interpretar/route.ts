@@ -69,6 +69,9 @@ export async function POST(request: Request) {
 
     const { texto } = await request.json()
     if (!texto) return NextResponse.json({ error: 'Texto obrigatório' }, { status: 400 })
+    if (typeof texto !== 'string' || texto.length > 1000) {
+      return NextResponse.json({ error: 'Texto muito longo.' }, { status: 400 })
+    }
 
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })

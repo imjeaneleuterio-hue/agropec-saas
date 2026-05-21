@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getActiveFarmId } from '@/lib/farm'
 import { animalSchema } from '@/lib/validations'
 
-async function findAnimal(animalId: string) {
-  return prisma.animal.findUnique({ where: { id: animalId } })
+async function findOwnedAnimal(animalId: string, userId: string) {
+  const farmId = await getActiveFarmId(userId)
+  if (!farmId) return null
+  return prisma.animal.findFirst({ where: { id: animalId, farmId } })
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,8 +16,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
+
     const animal = await prisma.animal.findFirst({
-      where: { id },
+      where: { id, farmId },
       include: {
         weightRecords: { orderBy: { date: 'desc' } },
         milkProductions: { orderBy: { date: 'desc' }, take: 30 },
@@ -37,7 +43,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const animal = await findAnimal(id)
+    const animal = await findOwnedAnimal(id, session.userId)
     if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
 
     const body = await request.json()
@@ -68,7 +74,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const animal = await findAnimal(id)
+    const animal = await findOwnedAnimal(id, session.userId)
     if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
 
     await prisma.animal.delete({ where: { id } })

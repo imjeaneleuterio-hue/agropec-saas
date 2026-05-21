@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getActiveFarmId } from '@/lib/farm'
 import { milkProductionSchema } from '@/lib/validations'
 
 export async function GET(request: Request) {
@@ -19,10 +20,11 @@ export async function GET(request: Request) {
       include: { farms: { include: { animals: { select: { id: true } } } } },
     })
     const animalIds = user?.farms.flatMap((f) => f.animals.map((a) => a.id)) ?? []
+    const filteredId = animalId && animalIds.includes(animalId) ? animalId : null
 
     const records = await prisma.milkProduction.findMany({
       where: {
-        animalId: animalId ? animalId : { in: animalIds },
+        animalId: filteredId ? filteredId : { in: animalIds },
         ...(startDate && { date: { gte: new Date(startDate) } }),
         ...(endDate && { date: { lte: new Date(endDate) } }),
       },
@@ -50,6 +52,12 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
+
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    const animal = await prisma.animal.findFirst({ where: { id: parsed.data.animalId, farmId } })
+    if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
 
     const { morningLiters = 0, afternoonLiters = 0, eveningLiters = 0, ...rest } = parsed.data
     const totalLiters = morningLiters + afternoonLiters + eveningLiters

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { weightRecordSchema } from '@/lib/validations'
 
+
 export async function GET(request: Request) {
   try {
     const session = await getSession()
@@ -43,6 +44,12 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 })
     }
+
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    const animal = await prisma.animal.findFirst({ where: { id: parsed.data.animalId, farmId } })
+    if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
 
     const record = await prisma.weightRecord.create({
       data: { ...parsed.data, date: new Date(parsed.data.date) },

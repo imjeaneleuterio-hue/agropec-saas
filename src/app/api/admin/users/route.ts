@@ -6,6 +6,7 @@ export async function GET() {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    if (session.role !== 'ADMIN') return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
 
     const users = await prisma.user.findMany({
       select: {

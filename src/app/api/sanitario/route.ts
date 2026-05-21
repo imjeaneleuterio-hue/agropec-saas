@@ -56,6 +56,10 @@ export async function POST(request: Request) {
     }
 
     const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    const animal = await prisma.animal.findFirst({ where: { id: parsed.data.animalId, farmId } })
+    if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
 
     const record = await prisma.healthRecord.create({
       data: {
@@ -65,8 +69,7 @@ export async function POST(request: Request) {
       },
     })
 
-    if (farmId) {
-      const animal = await prisma.animal.findUnique({ where: { id: parsed.data.animalId } })
+    {
       const animalLabel = animal?.name ?? `#${animal?.tag}`
 
       if (parsed.data.cost && parsed.data.cost > 0) {
