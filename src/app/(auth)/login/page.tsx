@@ -9,6 +9,7 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
+  const verified = searchParams.get('verified')
   const [modo, setModo] = useState<'login' | 'esqueci' | 'redefinir'>(token ? 'redefinir' : 'login')
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -93,6 +94,26 @@ function LoginContent() {
               <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta!</h1>
               <p className="text-gray-500 text-sm mt-2">Entre na sua conta J.ELEUPEC</p>
             </div>
+            {verified === '1' && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                ✅ E-mail confirmado! Agora é só entrar.
+              </div>
+            )}
+            {verified === 'invalid' && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                Link inválido ou já utilizado. Tente criar uma nova conta.
+              </div>
+            )}
+            {verified === 'expired' && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                Link expirado (24h). Crie uma nova conta para receber um novo link.
+              </div>
+            )}
+            {verified === 'error' && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                Erro ao confirmar e-mail. Tente novamente.
+              </div>
+            )}
             {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
             <form onSubmit={handleLogin} className="space-y-4">
               <div>

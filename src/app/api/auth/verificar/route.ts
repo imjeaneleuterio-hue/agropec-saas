@@ -2,22 +2,23 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const token = searchParams.get('token')
+  const base = new URL('/', request.url).toString().replace(/\/$/, '')
+
+  if (!token) {
+    return NextResponse.redirect(`${base}/login?verified=error`)
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const token = searchParams.get('token')
-
-    if (!token) {
-      return NextResponse.json({ error: 'Token inválido.' }, { status: 400 })
-    }
-
     const user = await prisma.user.findUnique({ where: { verificationToken: token } })
 
     if (!user) {
-      return NextResponse.json({ error: 'Token inválido ou já utilizado.' }, { status: 400 })
+      return NextResponse.redirect(`${base}/login?verified=invalid`)
     }
 
     if (user.verificationTokenExpiry && user.verificationTokenExpiry < new Date()) {
-      return NextResponse.json({ error: 'Token expirado. Solicite um novo cadastro.' }, { status: 400 })
+      return NextResponse.redirect(`${base}/login?verified=expired`)
     }
 
     await prisma.user.update({
@@ -29,9 +30,9 @@ export async function GET(request: Request) {
       },
     })
 
-    return NextResponse.json({ message: 'E-mail confirmado com sucesso! Você já pode fazer login.' })
+    return NextResponse.redirect(`${base}/login?verified=1`)
   } catch (error) {
     console.error('[VERIFICAR]', error)
-    return NextResponse.json({ error: 'Erro interno.' }, { status: 500 })
+    return NextResponse.redirect(`${base}/login?verified=error`)
   }
 }
