@@ -59,10 +59,27 @@ function PlanosContent() {
   const [cancelMsg, setCancelMsg] = useState('')
 
   useEffect(() => {
+    const paymentId = searchParams.get('payment_id')
+
+    // Ativa o plano direto se MP redirecionou com payment_id aprovado
+    if (paymentId && status === 'aprovado') {
+      fetch('/api/planos/ativar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId }),
+      })
+        .then(r => r.json())
+        .then(() => fetch('/api/auth/me').then(r => r.json()).then(d => {
+          if (d.data?.subscription) setSub(d.data.subscription)
+        }))
+        .catch(() => {})
+      return
+    }
+
     fetch('/api/auth/me').then(r => r.json()).then(d => {
       if (d.data?.subscription) setSub(d.data.subscription)
     })
-  }, [status])
+  }, [status, searchParams])
 
   const currentPlan: PlanKey =
     sub?.status === 'ACTIVE' && (sub.plan === 'PRO' || sub.plan === 'PREMIUM')
