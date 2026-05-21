@@ -22,7 +22,9 @@ export async function POST(request: Request) {
     }
 
     const planData = PLANS[plan]
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const proto = request.headers.get('x-forwarded-proto') ?? 'https'
+    const host = request.headers.get('host') ?? 'agropec-saas.vercel.app'
+    const baseUrl = `${proto}://${host}`
 
     const preference = new Preference(mp)
     const result = await preference.create({
