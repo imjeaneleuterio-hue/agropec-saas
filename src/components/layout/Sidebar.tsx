@@ -55,9 +55,10 @@ interface SidebarProps {
   isOpen?: boolean
   onClose?: () => void
   plan?: PlanKey
+  role?: string
 }
 
-export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE' }: SidebarProps) {
+export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE', role }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -145,7 +146,7 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE' 
 
         {/* Bottom */}
         <div className="px-3 pb-4 border-t border-primary-800 pt-3 space-y-0.5">
-          {BOTTOM_ITEMS.map((item) => (
+          {BOTTOM_ITEMS.filter((item) => item.href !== '/admin' || role === 'ADMIN' || role === 'SUPER_ADMIN').map((item) => (
             <button
               key={item.href}
               onClick={() => handleNav(item.href)}

@@ -31,6 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<User | null>(null)
   const [farms, setFarms] = useState<Farm[]>([])
   const [plan, setPlan] = useState<PlanKey>('FREE')
+  const [role, setRole] = useState<string>('')
   const pathname = usePathname()
 
   const title = Object.entries(PAGE_TITLES).find(([key]) =>
@@ -42,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (d.data) {
         setUser(d.data)
         setFarms(d.data.farms ?? [])
+        setRole(d.data.role ?? '')
         const sub = d.data.subscription
         if (sub?.status === 'ACTIVE' && (sub.plan === 'PRO' || sub.plan === 'PREMIUM')) {
           setPlan(sub.plan as PlanKey)
@@ -52,7 +54,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} plan={plan} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} plan={plan} role={role} />
       <div className="flex flex-col flex-1 min-w-0 lg:ml-64 overflow-hidden">
         <Header user={user} farms={farms} onMenuClick={() => setSidebarOpen(true)} title={title} />
         <main className="flex-1 overflow-y-auto">

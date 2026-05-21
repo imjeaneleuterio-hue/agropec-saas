@@ -1,21 +1,37 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatDate, LABELS } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 
 const PLAN_COLORS: Record<string, string> = {
-  FREE: 'bg-gray-100 text-gray-600',
-  BASIC: 'bg-blue-100 text-blue-700',
-  PROFESSIONAL: 'bg-purple-100 text-purple-700',
-  ENTERPRISE: 'bg-yellow-100 text-yellow-700',
+  FREE:    'bg-gray-100 text-gray-600',
+  PRO:     'bg-blue-100 text-blue-700',
+  PREMIUM: 'bg-yellow-100 text-yellow-700',
+}
+
+const PLAN_LABELS: Record<string, string> = {
+  FREE:    'Gratuito',
+  PRO:     'Pro',
+  PREMIUM: 'Premium',
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  ADMIN: 'Admin',
+  PRODUCER: 'Produtor',
+  VETERINARIAN: 'Veterinário',
+  EMPLOYEE: 'Funcionário',
 }
 
 type UserRow = {
   id: string; name: string; email: string; role: string;
-  farms: number; plan: string; isActive: boolean; createdAt: string;
+  farms: number; plan: string; isActive: boolean; createdAt: string
 }
 
-type Stats = { users: number; farms: number; animals: number }
+type Stats = {
+  users: number; farms: number; animals: number
+  revenue: number; pro: number; premium: number
+}
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState(0)
@@ -34,9 +50,10 @@ export default function AdminPage() {
   }, [])
 
   const statCards = [
-    { label: 'Usuários Ativos', value: stats?.users ?? '—', icon: '👥' },
-    { label: 'Fazendas Cadastradas', value: stats?.farms ?? '—', icon: '🏡' },
-    { label: 'Animais no Sistema', value: stats?.animals ?? '—', icon: '🐄' },
+    { label: 'Usuários Ativos',      value: stats?.users ?? '—',                        icon: '👥' },
+    { label: 'Fazendas Cadastradas', value: stats?.farms ?? '—',                        icon: '🏡' },
+    { label: 'Animais no Sistema',   value: stats?.animals ?? '—',                      icon: '🐄' },
+    { label: 'Receita Estimada/mês', value: stats ? formatCurrency(stats.revenue) : '—', icon: '💰', highlight: true },
   ]
 
   return (
@@ -46,17 +63,35 @@ export default function AdminPage() {
         <p className="text-gray-500 text-sm">Gestão de usuários, fazendas e plataforma</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s) => (
-          <div key={s.label} className="stat-card">
-            <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center text-xl">{s.icon}</div>
+          <div key={s.label} className={`stat-card ${s.highlight ? 'border border-green-200 bg-green-50' : ''}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${s.highlight ? 'bg-green-100' : 'bg-primary-50'}`}>
+              {s.icon}
+            </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{loading ? '...' : s.value}</p>
+              <p className={`text-2xl font-bold ${s.highlight ? 'text-green-700' : 'text-gray-900'}`}>
+                {loading ? '...' : s.value}
+              </p>
               <p className="text-xs text-gray-500">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
+
+      {stats && !loading && (
+        <div className="flex gap-3 flex-wrap">
+          <span className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 font-medium">
+            {stats.pro} assinante{stats.pro !== 1 ? 's' : ''} Pro
+          </span>
+          <span className="px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700 font-medium">
+            {stats.premium} assinante{stats.premium !== 1 ? 's' : ''} Premium
+          </span>
+          <span className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 font-medium">
+            {stats.users - stats.pro - stats.premium} usuário{(stats.users - stats.pro - stats.premium) !== 1 ? 's' : ''} gratuito{(stats.users - stats.pro - stats.premium) !== 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
 
       <div className="border-b border-gray-200">
         <div className="flex gap-0">
@@ -95,7 +130,7 @@ export default function AdminPage() {
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold text-xs">
+                          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-bold text-xs flex-shrink-0">
                             {user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()}
                           </div>
                           <div>
@@ -105,11 +140,11 @@ export default function AdminPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
-                        {LABELS.role[user.role as keyof typeof LABELS.role] ?? user.role}
+                        {ROLE_LABELS[user.role] ?? user.role}
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <span className={`badge ${PLAN_COLORS[user.plan] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {LABELS.plan[user.plan as keyof typeof LABELS.plan] ?? user.plan}
+                          {PLAN_LABELS[user.plan] ?? user.plan}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">{user.farms}</td>
@@ -135,9 +170,11 @@ export default function AdminPage() {
           <h3 className="section-title mb-4">Informações do Sistema</h3>
           <div className="space-y-3">
             {[
-              { label: 'Nome do Sistema', value: 'J.ELEUPEC' },
-              { label: 'Versão', value: '1.0.0' },
-              { label: 'Banco de Dados', value: 'SQLite (dev)' },
+              { label: 'Nome do Sistema',  value: 'J.ELEUPEC' },
+              { label: 'Versão',           value: '1.0.0' },
+              { label: 'Banco de Dados',   value: 'Supabase (PostgreSQL)' },
+              { label: 'Hospedagem',       value: 'Vercel' },
+              { label: 'Pagamentos',       value: 'Mercado Pago' },
             ].map((item) => (
               <div key={item.label} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-500">{item.label}</span>
