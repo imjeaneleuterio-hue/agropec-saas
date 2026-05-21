@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { handleTrialResponse } from '@/lib/trialEvent'
 
 type Estado = 'idle' | 'gravando' | 'transcrevendo' | 'confirmando' | 'registrando' | 'sucesso' | 'erro'
@@ -34,8 +35,10 @@ const EXEMPLOS = [
 ]
 
 export function VoiceButton() {
+  const router = useRouter()
   const [estado, setEstado] = useState<Estado>('idle')
   const [aberto, setAberto] = useState(false)
+  const [trialInfo, setTrialInfo] = useState<{ remaining: number; limit: number } | null>(null)
   const [transcricao, setTranscricao] = useState('')
   const [interpretacao, setInterpretacao] = useState<Interpretacao | null>(null)
   const [erro, setErro] = useState('')
@@ -46,6 +49,13 @@ export function VoiceButton() {
   const chunksRef = useRef<Blob[]>([])
   const streamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    fetch('/api/trial/usage?module=ia_voz')
+      .then((r) => r.json())
+      .then((d) => { if (d.unlocked === false) setTrialInfo({ remaining: d.remaining, limit: d.limit }) })
+      .catch(() => {})
+  }, [])
 
   async function iniciarGravacao() {
     setTranscricao('')
@@ -193,15 +203,24 @@ export function VoiceButton() {
     setConfirmacao('')
   }
 
+  const isLocked = trialInfo !== null && trialInfo.remaining <= 0
+
   return (
     <>
       <button
-        onClick={() => setAberto(true)}
-        title="Registrar por voz"
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:scale-105 active:scale-95"
+        onClick={() => isLocked ? router.push('/planos') : setAberto(true)}
+        title={isLocked ? 'Comando de voz — disponível no plano Premium' : 'Registrar por voz'}
+        className={`fixed bottom-6 right-6 z-40 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:scale-105 active:scale-95 ${
+          isLocked ? 'bg-gray-400 hover:bg-gray-500' : 'bg-primary-600 hover:bg-primary-700'
+        }`}
       >
-        🎤
+        {isLocked ? '🔒' : '🎤'}
       </button>
+      {isLocked && (
+        <div className="fixed bottom-[5.5rem] right-4 z-40 bg-gray-900 text-white text-xs rounded-xl px-3 py-2 max-w-[180px] text-center shadow-lg pointer-events-none">
+          Assine o Premium para usar comandos de voz
+        </div>
+      )}
 
       {aberto && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">

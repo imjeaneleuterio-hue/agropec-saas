@@ -38,7 +38,9 @@ export function UpgradeModal({ module, onClose }: Props) {
           <strong>{MODULE_NAMES[module] ?? module}</strong>.
         </p>
         <p className="text-gray-400 text-xs mb-5">
-          Assine o plano Pro ou Premium para continuar usando sem limites.
+          {module === 'ia_voz'
+            ? 'Assine o plano Premium para continuar usando sem limites.'
+            : 'Assine o plano Pro ou Premium para continuar usando sem limites.'}
         </p>
         <div className="flex gap-3">
           <button
