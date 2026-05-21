@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { handleTrialResponse } from '@/lib/trialEvent'
+import { handleTrialResponse, triggerTrialExhausted } from '@/lib/trialEvent'
 
 type Estado = 'idle' | 'gravando' | 'transcrevendo' | 'confirmando' | 'registrando' | 'sucesso' | 'erro'
 
@@ -35,7 +34,6 @@ const EXEMPLOS = [
 ]
 
 export function VoiceButton() {
-  const router = useRouter()
   const [estado, setEstado] = useState<Estado>('idle')
   const [aberto, setAberto] = useState(false)
   const [trialInfo, setTrialInfo] = useState<{ remaining: number; limit: number } | null>(null)
@@ -208,7 +206,7 @@ export function VoiceButton() {
   return (
     <>
       <button
-        onClick={() => isLocked ? router.push('/planos') : setAberto(true)}
+        onClick={() => isLocked ? triggerTrialExhausted('ia_voz') : setAberto(true)}
         title={isLocked ? 'Comando de voz — disponível no plano Premium' : 'Registrar por voz'}
         className={`fixed bottom-6 right-6 z-40 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:scale-105 active:scale-95 ${
           isLocked ? 'bg-gray-400 hover:bg-gray-500' : 'bg-primary-600 hover:bg-primary-700'
