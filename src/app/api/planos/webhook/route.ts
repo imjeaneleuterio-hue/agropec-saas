@@ -1,51 +1,100 @@
 import { NextResponse } from 'next/server'
-import { MercadoPagoConfig, Payment } from 'mercadopago'
+import { MercadoPagoConfig, PreApproval } from 'mercadopago'
 import { prisma } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/plans'
 
 const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN ?? '' })
 
+async function activatePlan(userId: string, plan: PlanKey) {
+  const existing = await prisma.subscription.findUnique({ where: { userId } })
+  const base = existing?.endDate && existing.endDate > new Date() ? existing.endDate : new Date()
+  const endDate = new Date(base)
+  endDate.setDate(endDate.getDate() + 31)
+  await prisma.subscription.upsert({
+    where: { userId },
+    update: { plan, status: 'ACTIVE', endDate },
+    create: { userId, plan, status: 'ACTIVE', endDate },
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}))
-
-    // MP envia tanto IPN quanto Webhooks — normaliza o ID
-    const paymentId = body?.data?.id ?? body?.id
     const topic = body?.type ?? body?.topic
+    const id = body?.data?.id ?? body?.id
 
-    if (topic !== 'payment' || !paymentId) {
+    if (!id) return NextResponse.json({ ok: true })
+
+    // Assinatura autorizada ou atualizada
+    if (topic === 'subscription_preapproval') {
+      const preApproval = new PreApproval(mp)
+      const sub = await preApproval.get({ id })
+
+      if (sub.status === 'authorized') {
+        const ref = sub.external_reference ?? ''
+        const [userId, plan] = ref.split(':') as [string, PlanKey]
+        if (userId && (plan === 'PRO' || plan === 'PREMIUM')) {
+          await activatePlan(userId, plan)
+        }
+      }
+
+      // Assinatura cancelada/pausada — reverte para FREE
+      if (sub.status === 'cancelled' || sub.status === 'paused') {
+        const ref = sub.external_reference ?? ''
+        const [userId] = ref.split(':')
+        if (userId) {
+          await prisma.subscription.updateMany({
+            where: { userId },
+            data: { plan: 'FREE', status: 'INACTIVE', endDate: new Date() },
+          })
+        }
+      }
+
       return NextResponse.json({ ok: true })
     }
 
-    const payment = new Payment(mp)
-    const data = await payment.get({ id: paymentId })
+    // Pagamento mensal da assinatura
+    if (topic === 'subscription_authorized_payment') {
+      const token = process.env.MERCADOPAGO_ACCESS_TOKEN ?? ''
+      const res = await fetch(`https://api.mercadopago.com/authorized_payments/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const payment = await res.json()
 
-    if (data.status !== 'approved') {
+      if (payment.status !== 'approved' || !payment.preapproval_id) {
+        return NextResponse.json({ ok: true })
+      }
+
+      const preApproval = new PreApproval(mp)
+      const sub = await preApproval.get({ id: payment.preapproval_id })
+      const ref = sub.external_reference ?? ''
+      const [userId, plan] = ref.split(':') as [string, PlanKey]
+
+      if (userId && (plan === 'PRO' || plan === 'PREMIUM')) {
+        await activatePlan(userId, plan)
+      }
+
       return NextResponse.json({ ok: true })
     }
 
-    const ref = data.external_reference ?? ''
-    const [userId, plan] = ref.split(':') as [string, PlanKey]
+    // Pagamento avulso legado (retrocompatibilidade)
+    if (topic === 'payment') {
+      const { Payment } = await import('mercadopago')
+      const payment = new Payment(mp)
+      const data = await payment.get({ id })
 
-    if (!userId || (plan !== 'PRO' && plan !== 'PREMIUM')) {
-      return NextResponse.json({ ok: true })
+      if (data.status === 'approved') {
+        const ref = data.external_reference ?? ''
+        const [userId, plan] = ref.split(':') as [string, PlanKey]
+        if (userId && (plan === 'PRO' || plan === 'PREMIUM')) {
+          await activatePlan(userId, plan)
+        }
+      }
     }
-
-    // Estende 31 dias a partir da data de expiração atual (ou de hoje)
-    const existing = await prisma.subscription.findUnique({ where: { userId } })
-    const base = existing?.endDate && existing.endDate > new Date() ? existing.endDate : new Date()
-    const endDate = new Date(base)
-    endDate.setDate(endDate.getDate() + 31)
-
-    await prisma.subscription.upsert({
-      where: { userId },
-      update: { plan, status: 'ACTIVE', endDate },
-      create: { userId, plan, status: 'ACTIVE', endDate },
-    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('[WEBHOOK MP]', error)
-    return NextResponse.json({ ok: true }) // sempre 200 pro MP não retentar
+    return NextResponse.json({ ok: true })
   }
 }
