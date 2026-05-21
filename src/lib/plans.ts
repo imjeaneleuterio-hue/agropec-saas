@@ -42,3 +42,33 @@ export function canAccessModule(plan: PlanKey, module: string): boolean {
 export function getAnimalLimit(plan: PlanKey): number | null {
   return PLANS[plan].animalLimit
 }
+
+export const TRIAL_LIMITS: Record<string, number> = {
+  reproducao: 3,
+  sanitario: 5,
+  financeiro: 5,
+  relatorios: 3,
+  ia: 5,
+  ia_voz: 3,
+}
+
+export async function checkTrialAccess(
+  userId: string,
+  module: string
+): Promise<{ allowed: boolean; used: number; limit: number }> {
+  const limit = TRIAL_LIMITS[module] ?? 0
+  if (limit === 0) return { allowed: false, used: 0, limit: 0 }
+  const usage = await prisma.trialUsage.findUnique({
+    where: { userId_module: { userId, module } },
+  })
+  const used = usage?.count ?? 0
+  return { allowed: used < limit, used, limit }
+}
+
+export async function incrementTrialUsage(userId: string, module: string): Promise<void> {
+  await prisma.trialUsage.upsert({
+    where: { userId_module: { userId, module } },
+    update: { count: { increment: 1 } },
+    create: { userId, module, count: 1 },
+  })
+}

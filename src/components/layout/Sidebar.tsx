@@ -73,11 +73,7 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE',
 
   function handleNav(href: string) {
     onClose?.()
-    if (isLocked(href)) {
-      router.push('/planos')
-    } else {
-      router.push(href)
-    }
+    router.push(href)
   }
 
   return (

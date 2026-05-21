@@ -21,10 +21,13 @@ export async function POST(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    const { getUserPlan, canAccessModule } = await import('@/lib/plans')
+    const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
     const plan = await getUserPlan(session.userId)
     if (!canAccessModule(plan, 'ia')) {
-      return NextResponse.json({ error: 'Módulo disponível no plano Pro ou superior.', upgrade: true }, { status: 403 })
+      const trial = await checkTrialAccess(session.userId, 'ia')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou suas ${trial.limit} perguntas gratuitas de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'ia', limit: trial.limit }, { status: 403 })
+      }
     }
 
     const { mensagem, historico } = await request.json()
@@ -45,6 +48,10 @@ export async function POST(request: Request) {
       ...historicoLimitado,
       { role: 'user' as const, content: mensagem },
     ]
+
+    if (!canAccessModule(plan, 'ia')) {
+      await incrementTrialUsage(session.userId, 'ia')
+    }
 
     const stream = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',

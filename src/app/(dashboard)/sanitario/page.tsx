@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { formatDate, LABELS, formatCurrency, daysFromToday } from '@/lib/utils'
+import { handleTrialResponse } from '@/lib/trialEvent'
 import type { HealthRecord, Animal } from '@/types'
 
 const TYPE_ICONS: Record<string, string> = {
@@ -85,6 +86,7 @@ export default function SanitarioPage() {
     })
     const data = await res.json()
     if (!res.ok) {
+      if (handleTrialResponse(data)) return
       setError(data.error ?? 'Erro ao salvar')
     } else {
       setShowModal(false)

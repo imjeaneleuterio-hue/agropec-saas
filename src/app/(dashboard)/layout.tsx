@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { VoiceButton } from '@/components/VoiceButton'
+import { UpgradeModal } from '@/components/UpgradeModal'
 import type { User } from '@/types'
 import type { PlanKey } from '@/lib/plans'
 
@@ -32,6 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [farms, setFarms] = useState<Farm[]>([])
   const [plan, setPlan] = useState<PlanKey>('FREE')
   const [role, setRole] = useState<string>('')
+  const [upgradeModule, setUpgradeModule] = useState<string | null>(null)
   const pathname = usePathname()
 
   const title = Object.entries(PAGE_TITLES).find(([key]) =>
@@ -52,6 +54,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     })
   }, [])
 
+  useEffect(() => {
+    function onTrialExhausted(e: Event) {
+      const detail = (e as CustomEvent).detail as { module: string }
+      setUpgradeModule(detail.module)
+    }
+    window.addEventListener('trial:exhausted', onTrialExhausted)
+    return () => window.removeEventListener('trial:exhausted', onTrialExhausted)
+  }, [])
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} plan={plan} role={role} />
@@ -64,6 +75,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
         <VoiceButton />
       </div>
+
+      {upgradeModule && (
+        <UpgradeModal module={upgradeModule} onClose={() => setUpgradeModule(null)} />
+      )}
     </div>
   )
 }

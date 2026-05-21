@@ -27,6 +27,7 @@ model User {
   farms             Farm[]
   subscription      Subscription?
   pushSubscriptions PushSubscription[]
+  trialUsages       TrialUsage[]
 }
 
 model Farm {
@@ -221,6 +222,17 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@unique([userId, endpoint])
+  @@index([userId])
+}
+
+model TrialUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  module    String
+  count     Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module])
   @@index([userId])
 }
 

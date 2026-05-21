@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { formatDate, LABELS, cn, daysFromToday } from '@/lib/utils'
+import { handleTrialResponse } from '@/lib/trialEvent'
 import type { ReproductiveEvent, Animal } from '@/types'
 
 const EVENT_COLORS: Record<string, string> = {
@@ -99,6 +100,7 @@ export default function ReproducaoPage() {
     })
     const data = await res.json()
     if (!res.ok) {
+      if (handleTrialResponse(data)) return
       setError(data.error ?? 'Erro ao salvar')
     } else {
       setShowModal(false)

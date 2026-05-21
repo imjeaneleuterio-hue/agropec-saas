@@ -5,19 +5,12 @@ import { getActiveFarmId } from '@/lib/farm'
 import { reproductiveEventSchema } from '@/lib/validations'
 import { addDays } from 'date-fns'
 import { sendPushToFarm } from '@/lib/webpush'
-import { getUserPlan, canAccessModule } from '@/lib/plans'
-
-const UPGRADE_RESPONSE = NextResponse.json(
-  { error: 'Módulo disponível no plano Pro ou superior.', upgrade: true },
-  { status: 403 }
-)
+import { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } from '@/lib/plans'
 
 export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'reproducao')) return UPGRADE_RESPONSE
 
     const { searchParams } = new URL(request.url)
     const animalId = searchParams.get('animalId')
@@ -49,7 +42,12 @@ export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'reproducao')) return UPGRADE_RESPONSE
+    if (!canAccessModule(plan, 'reproducao')) {
+      const trial = await checkTrialAccess(session.userId, 'reproducao')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou seus ${trial.limit} eventos gratuitos de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'reproducao', limit: trial.limit }, { status: 403 })
+      }
+    }
 
     const body = await request.json()
     const parsed = reproductiveEventSchema.safeParse(body)
@@ -139,6 +137,10 @@ export async function POST(request: Request) {
         })
         sendPushToFarm(farmId, { title: cioTitle, body: cioDescription, url: '/dashboard/alertas' }).catch(() => {})
       }
+    }
+
+    if (!canAccessModule(plan, 'reproducao')) {
+      await incrementTrialUsage(session.userId, 'reproducao')
     }
 
     return NextResponse.json({ data: event, message: 'Evento registrado com sucesso' }, { status: 201 })

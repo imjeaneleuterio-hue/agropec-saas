@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { formatDate, formatCurrency, LABELS, getStatusColor, FINANCIAL_CATEGORIES_INCOME, FINANCIAL_CATEGORIES_EXPENSE, cn } from '@/lib/utils'
+import { handleTrialResponse } from '@/lib/trialEvent'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import type { FinancialRecord } from '@/types'
 
@@ -65,7 +66,7 @@ export default function FinanceiroPage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { setSaveError(data.error ?? 'Erro ao salvar.'); return }
+      if (!res.ok) { if (handleTrialResponse(data)) return; setSaveError(data.error ?? 'Erro ao salvar.'); return }
       setSaveSuccess(true)
       setTimeout(() => { setShowModal(false); setForm(EMPTY_FORM); setSaveSuccess(false); load() }, 1200)
     } catch {

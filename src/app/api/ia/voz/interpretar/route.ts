@@ -66,10 +66,14 @@ export async function POST(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    const { getUserPlan, canAccessModule } = await import('@/lib/plans')
+    const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
     const plan = await getUserPlan(session.userId)
     if (!canAccessModule(plan, 'ia_voz')) {
-      return NextResponse.json({ error: 'Comando de voz disponível no plano Premium.', upgrade: true }, { status: 403 })
+      const trial = await checkTrialAccess(session.userId, 'ia_voz')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou seus ${trial.limit} comandos de voz gratuitos de teste. Assine o plano Premium para continuar.`, upgrade: true, trialExhausted: true, module: 'ia_voz', limit: trial.limit }, { status: 403 })
+      }
+      await incrementTrialUsage(session.userId, 'ia_voz')
     }
 
     const { texto } = await request.json()

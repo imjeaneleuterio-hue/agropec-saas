@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { handleTrialResponse } from '@/lib/trialEvent'
 
 type Tab = 'saude' | 'reproducao'
 
@@ -104,7 +105,11 @@ function TabSaude() {
         body: JSON.stringify({ mensagem: texto, historico }),
       })
 
-      if (!res.ok) throw new Error('Erro na API')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        if (handleTrialResponse(errData)) return
+        throw new Error(errData.error ?? 'Erro na API')
+      }
 
       const reader = res.body!.getReader()
       const decoder = new TextDecoder()
@@ -236,6 +241,7 @@ function TabReproducao() {
         setAnalise(dados.analise)
         setMensagens([{ role: 'assistant', content: dados.analise }])
       } else {
+        if (handleTrialResponse(dados)) return
         setAnalise(`Erro: ${dados.error}`)
       }
     } catch {

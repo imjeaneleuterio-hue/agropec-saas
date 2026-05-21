@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { formatCurrency, formatNumber } from '@/lib/utils'
+import { handleTrialResponse } from '@/lib/trialEvent'
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const REPORT_TYPES = [
@@ -33,6 +34,7 @@ export default function RelatoriosPage() {
       fetch(`/api/relatorios?type=financial&months=${months}`).then((r) => r.json()),
     ])
       .then(([milk, fin]) => {
+        if (handleTrialResponse(milk) || handleTrialResponse(fin)) return
         setMilkData(Array.isArray(milk.data) ? milk.data : [])
         setFinancialData(Array.isArray(fin.data) ? fin.data : [])
       })

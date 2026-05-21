@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { handleTrialResponse } from '@/lib/trialEvent'
 
 type Estado = 'idle' | 'gravando' | 'transcrevendo' | 'confirmando' | 'registrando' | 'sucesso' | 'erro'
 
@@ -130,7 +131,10 @@ export function VoiceButton() {
         body: JSON.stringify({ texto }),
       })
       const interpData = await interpRes.json()
-      if (!interpRes.ok) throw new Error(interpData.error ?? 'Erro na interpretação')
+      if (!interpRes.ok) {
+        if (handleTrialResponse(interpData)) { setEstado('idle'); return }
+        throw new Error(interpData.error ?? 'Erro na interpretação')
+      }
 
       setInterpretacao(interpData)
       setEstado('confirmando')

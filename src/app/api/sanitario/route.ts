@@ -4,19 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { healthRecordSchema } from '@/lib/validations'
 import { sendPushToFarm } from '@/lib/webpush'
-import { getUserPlan, canAccessModule } from '@/lib/plans'
-
-const UPGRADE_RESPONSE = NextResponse.json(
-  { error: 'Módulo disponível no plano Pro ou superior.', upgrade: true },
-  { status: 403 }
-)
+import { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } from '@/lib/plans'
 
 export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'sanitario')) return UPGRADE_RESPONSE
 
     const { searchParams } = new URL(request.url)
     const animalId = searchParams.get('animalId')
@@ -58,7 +51,12 @@ export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'sanitario')) return UPGRADE_RESPONSE
+    if (!canAccessModule(plan, 'sanitario')) {
+      const trial = await checkTrialAccess(session.userId, 'sanitario')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou seus ${trial.limit} registros gratuitos de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'sanitario', limit: trial.limit }, { status: 403 })
+      }
+    }
 
     const body = await request.json()
     const parsed = healthRecordSchema.safeParse(body)
@@ -130,6 +128,10 @@ export async function POST(request: Request) {
           url: '/dashboard/alertas',
         }).catch(() => {})
       }
+    }
+
+    if (!canAccessModule(plan, 'sanitario')) {
+      await incrementTrialUsage(session.userId, 'sanitario')
     }
 
     return NextResponse.json({ data: record, message: 'Registro sanitário criado' }, { status: 201 })

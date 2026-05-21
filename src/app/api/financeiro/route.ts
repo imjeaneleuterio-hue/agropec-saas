@@ -3,19 +3,12 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { financialRecordSchema } from '@/lib/validations'
-import { getUserPlan, canAccessModule } from '@/lib/plans'
-
-const UPGRADE_RESPONSE = NextResponse.json(
-  { error: 'Módulo disponível no plano Pro ou superior.', upgrade: true },
-  { status: 403 }
-)
+import { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } from '@/lib/plans'
 
 export async function GET(request: Request) {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'financeiro')) return UPGRADE_RESPONSE
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
@@ -64,7 +57,12 @@ export async function POST(request: Request) {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'financeiro')) return UPGRADE_RESPONSE
+    if (!canAccessModule(plan, 'financeiro')) {
+      const trial = await checkTrialAccess(session.userId, 'financeiro')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou seus ${trial.limit} lançamentos gratuitos de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'financeiro', limit: trial.limit }, { status: 403 })
+      }
+    }
 
     const body = await request.json()
     const parsed = financialRecordSchema.safeParse(body)
@@ -78,6 +76,10 @@ export async function POST(request: Request) {
     const record = await prisma.financialRecord.create({
       data: { ...parsed.data, farmId, date: new Date(parsed.data.date) },
     })
+
+    if (!canAccessModule(plan, 'financeiro')) {
+      await incrementTrialUsage(session.userId, 'financeiro')
+    }
 
     return NextResponse.json({ data: record, message: 'Lançamento registrado' }, { status: 201 })
   } catch {
