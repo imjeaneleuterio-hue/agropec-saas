@@ -8,7 +8,7 @@ export const PLANS = {
     name: 'Gratuito',
     price: 0,
     animalLimit: 5,
-    lockedModules: ['reproducao', 'sanitario', 'financeiro', 'relatorios', 'ia'],
+    lockedModules: ['reproducao', 'sanitario', 'financeiro', 'relatorios', 'ia', 'ia_voz'],
   },
   PRO: {
     key: 'PRO' as PlanKey,
