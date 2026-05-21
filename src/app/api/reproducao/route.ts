@@ -89,14 +89,17 @@ export async function POST(request: Request) {
         })
       }
 
-      // Cancela alerta de secagem anterior (novo ciclo ou secagem realizada)
-      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'DRY_OFF'].includes(data.type)) {
+      // Cancela alerta de secagem anterior (novo ciclo, secagem realizada, aborto ou diagnóstico negativo)
+      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'DRY_OFF', 'ABORTION', 'PREGNANCY_CHECK_NEGATIVE'].includes(data.type)) {
         await prisma.alert.deleteMany({
-          where: {
-            farmId,
-            animalId: data.animalId,
-            title: { startsWith: 'Secar Vaca' },
-          },
+          where: { farmId, animalId: data.animalId, title: { startsWith: 'Secar Vaca' } },
+        })
+      }
+
+      // Cancela alerta de parto previsto em caso de aborto ou diagnóstico negativo
+      if (['ABORTION', 'PREGNANCY_CHECK_NEGATIVE'].includes(data.type)) {
+        await prisma.alert.deleteMany({
+          where: { farmId, animalId: data.animalId, title: { startsWith: 'Parto Previsto' } },
         })
       }
 
@@ -148,6 +151,9 @@ export async function POST(request: Request) {
       } else if (data.type === 'PREGNANCY_CHECK_NEGATIVE') {
         cioDueDate = addDays(eventDate, 21)
         cioDescription = `Retorno ao cio previsto após diagnóstico negativo em ${eventDate.toLocaleDateString('pt-BR')}`
+      } else if (data.type === 'ABORTION') {
+        cioDueDate = addDays(eventDate, 21)
+        cioDescription = `Retorno ao cio previsto após aborto em ${eventDate.toLocaleDateString('pt-BR')}`
       }
 
       if (cioDueDate) {
