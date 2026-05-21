@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { reproductiveEventSchema } from '@/lib/validations'
 import { addDays } from 'date-fns'
+import { sendPushToFarm } from '@/lib/webpush'
 
 export async function GET(request: Request) {
   try {
@@ -82,17 +83,20 @@ export async function POST(request: Request) {
 
       // Alerta de parto previsto
       if ((data.type === 'INSEMINATION' || data.type === 'NATURAL_MATING' || data.type === 'PREGNANCY_CHECK_POSITIVE') && expectedCalving) {
+        const partoTitle = `Parto Previsto — ${animalLabel}`
+        const partoDesc = `Parto previsto para ${expectedCalving.toLocaleDateString('pt-BR')}`
         await prisma.alert.create({
           data: {
             farmId,
             type: 'REPRODUCTIVE',
-            title: `Parto Previsto — ${animalLabel}`,
-            description: `Parto previsto para ${expectedCalving.toLocaleDateString('pt-BR')}`,
+            title: partoTitle,
+            description: partoDesc,
             dueDate: expectedCalving,
             priority: 'HIGH',
             animalId: data.animalId,
           },
         })
+        sendPushToFarm(farmId, { title: partoTitle, body: partoDesc, url: '/dashboard/alertas' }).catch(() => {})
       }
 
       // Alerta de previsão de cio
@@ -111,17 +115,19 @@ export async function POST(request: Request) {
       }
 
       if (cioDueDate) {
+        const cioTitle = `Previsão de Cio — ${animalLabel}`
         await prisma.alert.create({
           data: {
             farmId,
             type: 'REPRODUCTIVE',
-            title: `Previsão de Cio — ${animalLabel}`,
+            title: cioTitle,
             description: cioDescription,
             dueDate: cioDueDate,
             priority: 'MEDIUM',
             animalId: data.animalId,
           },
         })
+        sendPushToFarm(farmId, { title: cioTitle, body: cioDescription, url: '/dashboard/alertas' }).catch(() => {})
       }
     }
 

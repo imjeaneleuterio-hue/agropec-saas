@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { STATES_BR, LABELS, formatDate } from '@/lib/utils'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 type UserData = {
   id: string; name: string; email: string; role: string;
@@ -16,6 +17,7 @@ type FarmData = {
 
 export default function ConfiguracoesPage() {
   const router = useRouter()
+  const push = usePushNotifications()
   const [activeTab, setActiveTab] = useState(0)
   const [user, setUser] = useState<UserData | null>(null)
   const [farm, setFarm] = useState<FarmData | null>(null)
@@ -142,7 +144,7 @@ export default function ConfiguracoesPage() {
 
       <div className="border-b border-gray-200">
         <div className="flex gap-0 flex-wrap">
-          {['Meu Perfil', 'Minha Fazenda', 'Plano', 'Segurança'].map((tab, i) => (
+          {['Meu Perfil', 'Minha Fazenda', 'Plano', 'Segurança', 'Notificações'].map((tab, i) => (
             <button key={tab} onClick={() => { setActiveTab(i); setError('') }}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === i ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -319,6 +321,83 @@ export default function ConfiguracoesPage() {
               🗑️ Excluir minha conta
             </button>
           </div>
+        </div>
+      )}
+
+      {activeTab === 4 && (
+        <div className="card p-6 space-y-5">
+          <div>
+            <h2 className="section-title">Notificações Push</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Receba alertas de parto, vacinação e cio diretamente no seu celular, mesmo com o app fechado.
+            </p>
+          </div>
+
+          {!push.supported && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm">
+              Seu navegador não suporta notificações push. Use o Chrome ou Safari no iOS 16.4+.
+            </div>
+          )}
+
+          {push.supported && push.permission === 'denied' && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+              Notificações bloqueadas pelo navegador. Clique no cadeado na barra de endereço e permita notificações.
+            </div>
+          )}
+
+          {push.error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {push.error}
+            </div>
+          )}
+
+          {push.supported && push.permission !== 'denied' && (
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div>
+                <p className="font-medium text-gray-900 text-sm">
+                  {push.subscribed ? 'Notificações ativas' : 'Notificações desativadas'}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {push.subscribed
+                    ? 'Você receberá alertas de parto, cio e vacinação.'
+                    : 'Ative para receber alertas no celular.'}
+                </p>
+              </div>
+              <button
+                onClick={push.subscribed ? push.unsubscribe : push.subscribe}
+                disabled={push.loading}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+                  push.subscribed ? 'bg-primary-600' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    push.subscribed ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
+
+          {push.subscribed && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Tipos de alerta</p>
+              {[
+                { icon: '🐄', label: 'Parto previsto', desc: 'Aviso quando um parto está próximo' },
+                { icon: '💉', label: 'Vacinação e sanitário', desc: 'Lembretes de retorno e próximas doses' },
+                { icon: '🔁', label: 'Previsão de cio', desc: 'Ciclo estral e retorno ao cio pós-parto' },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-lg">
+                  <span className="text-lg">{item.icon}</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{item.label}</p>
+                    <p className="text-xs text-gray-500">{item.desc}</p>
+                  </div>
+                  <span className="ml-auto text-xs text-green-600 font-medium">Ativo</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

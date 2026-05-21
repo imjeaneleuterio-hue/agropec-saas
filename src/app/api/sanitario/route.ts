@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { healthRecordSchema } from '@/lib/validations'
+import { sendPushToFarm } from '@/lib/webpush'
 
 export async function GET(request: Request) {
   try {
@@ -101,17 +102,23 @@ export async function POST(request: Request) {
         const priority = parsed.data.type === 'VACCINATION' ? 'HIGH' : 'MEDIUM'
         const label = TYPE_LABELS[parsed.data.type] ?? 'Sanitário'
 
+        const alertTitle = `${label} — ${animalLabel}`
         await prisma.alert.create({
           data: {
             farmId,
             type: alertType,
-            title: `${label} — ${animalLabel}`,
+            title: alertTitle,
             description: parsed.data.description,
             dueDate: new Date(parsed.data.nextDueDate),
             priority,
             animalId: parsed.data.animalId,
           },
         })
+        sendPushToFarm(farmId, {
+          title: alertTitle,
+          body: `Lembrete: ${parsed.data.description}`,
+          url: '/dashboard/alertas',
+        }).catch(() => {})
       }
     }
 
