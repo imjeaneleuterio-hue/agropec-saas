@@ -22,45 +22,46 @@ interface NavItem {
   label: string
   href: string
   icon: LucideIcon
+  iconBg: string   // bg + text color classes for the icon pill
 }
 
 const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
     title: 'Principal',
     items: [
-      { label: 'Início',  href: '/dashboard', icon: Home },
-      { label: 'Alertas', href: '/alertas',   icon: Bell },
+      { label: 'Início',  href: '/dashboard', icon: Home,        iconBg: 'bg-slate-700 text-slate-300' },
+      { label: 'Alertas', href: '/alertas',   icon: Bell,        iconBg: 'bg-red-500/20 text-red-400' },
     ],
   },
   {
     title: 'Rebanho',
     items: [
-      { label: 'Animais',    href: '/rebanho',    icon: Tag },
-      { label: 'Bezerros',   href: '/bezerros',   icon: Heart },
-      { label: 'Reprodução', href: '/reproducao', icon: CalendarDays },
-      { label: 'Pesagem',    href: '/pesagem',    icon: Scale },
-      { label: 'Sanitário',  href: '/sanitario',  icon: Syringe },
+      { label: 'Animais',    href: '/rebanho',    icon: Tag,         iconBg: 'bg-emerald-500/20 text-emerald-400' },
+      { label: 'Bezerros',   href: '/bezerros',   icon: Heart,       iconBg: 'bg-pink-500/20 text-pink-400' },
+      { label: 'Reprodução', href: '/reproducao', icon: CalendarDays, iconBg: 'bg-violet-500/20 text-violet-400' },
+      { label: 'Pesagem',    href: '/pesagem',    icon: Scale,       iconBg: 'bg-amber-500/20 text-amber-400' },
+      { label: 'Sanitário',  href: '/sanitario',  icon: Syringe,     iconBg: 'bg-cyan-500/20 text-cyan-400' },
     ],
   },
   {
     title: 'Produção',
     items: [
-      { label: 'Leite',      href: '/leite',      icon: Droplets },
-      { label: 'Financeiro', href: '/financeiro', icon: TrendingUp },
-      { label: 'Relatórios', href: '/relatorios', icon: BarChart2 },
+      { label: 'Leite',      href: '/leite',      icon: Droplets,   iconBg: 'bg-sky-500/20 text-sky-400' },
+      { label: 'Financeiro', href: '/financeiro', icon: TrendingUp, iconBg: 'bg-yellow-500/20 text-yellow-400' },
+      { label: 'Relatórios', href: '/relatorios', icon: BarChart2,  iconBg: 'bg-indigo-500/20 text-indigo-400' },
     ],
   },
   {
     title: 'IA',
     items: [
-      { label: 'IA Veterinária', href: '/ia', icon: Bot },
+      { label: 'IA Veterinária', href: '/ia', icon: Bot, iconBg: 'bg-purple-500/20 text-purple-400' },
     ],
   },
 ]
 
 const BOTTOM_ITEMS: NavItem[] = [
-  { label: 'Administração', href: '/admin',         icon: ShieldCheck },
-  { label: 'Configurações', href: '/configuracoes', icon: Settings },
+  { label: 'Administração', href: '/admin',         icon: ShieldCheck, iconBg: 'bg-slate-700 text-slate-300' },
+  { label: 'Configurações', href: '/configuracoes', icon: Settings,    iconBg: 'bg-slate-700 text-slate-300' },
 ]
 
 interface SidebarProps {
@@ -129,18 +130,21 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE',
                       key={item.href}
                       onClick={() => handleNav(item.href)}
                       className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-left',
+                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 text-left',
                         active && !locked
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          ? 'bg-white/5 text-white'
                           : locked
-                          ? 'text-slate-600 hover:bg-slate-800/50 hover:text-slate-400'
-                          : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                          ? 'opacity-40 hover:opacity-60'
+                          : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
                       )}
                     >
-                      <Icon className={cn(
-                        'w-4 h-4 shrink-0',
-                        active && !locked ? 'text-emerald-400' : locked ? 'text-slate-600' : 'text-slate-500'
-                      )} />
+                      <div className={cn(
+                        'w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-opacity',
+                        locked ? 'opacity-50' : '',
+                        item.iconBg
+                      )}>
+                        <Icon className="w-3.5 h-3.5" />
+                      </div>
                       <span className="flex-1">{item.label}</span>
                       {item.href === '/alertas' && alertCount > 0 && !locked && (
                         <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -169,13 +173,15 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE',
                   key={item.href}
                   onClick={() => handleNav(item.href)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-left',
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 text-left',
                     isActive(item.href)
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                      ? 'bg-white/5 text-white'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4 shrink-0', isActive(item.href) ? 'text-emerald-400' : 'text-slate-500')} />
+                  <div className={cn('w-6 h-6 rounded-md flex items-center justify-center shrink-0', item.iconBg)}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
                   <span>{item.label}</span>
                 </button>
               )
@@ -184,13 +190,15 @@ export function Sidebar({ alertCount = 0, isOpen = true, onClose, plan = 'FREE',
           <button
             onClick={() => { onClose?.(); router.push('/planos') }}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-left',
+              'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 text-left',
               isActive('/planos')
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                ? 'bg-white/5 text-white'
+                : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
             )}
           >
-            <Zap className={cn('w-4 h-4 shrink-0', isActive('/planos') ? 'text-emerald-400' : 'text-slate-500')} />
+            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 bg-yellow-500/20 text-yellow-400">
+              <Zap className="w-3.5 h-3.5" />
+            </div>
             <span>Planos</span>
           </button>
         </div>
