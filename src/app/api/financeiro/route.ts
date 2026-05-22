@@ -86,3 +86,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession()
+    if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 })
+
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    await prisma.financialRecord.deleteMany({ where: { id, farmId } })
+    return NextResponse.json({ message: 'Lançamento removido' })
+  } catch {
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
+  }
+}

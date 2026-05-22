@@ -44,6 +44,7 @@ export default function ReproducaoPage() {
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
   const [filterType, setFilterType] = useState('ALL')
   const [form, setForm] = useState(EMPTY_FORM)
 
@@ -109,6 +110,10 @@ export default function ReproducaoPage() {
       setShowModal(false)
       setForm(EMPTY_FORM)
       load()
+      if (data.createdCalf) {
+        setSuccessMsg(data.message)
+        setTimeout(() => setSuccessMsg(''), 7000)
+      }
     }
     setSaving(false)
   }
@@ -174,6 +179,13 @@ export default function ReproducaoPage() {
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Novo Evento</button>
       </div>
       <TrialBanner module="reproducao" />
+
+      {successMsg && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 flex items-center justify-between">
+          <span>✅ {successMsg}</span>
+          <button onClick={() => setSuccessMsg('')} className="text-green-500 hover:text-green-700 ml-3 text-lg leading-none">×</button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

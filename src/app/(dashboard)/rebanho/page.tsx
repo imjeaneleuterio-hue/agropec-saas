@@ -203,7 +203,7 @@ export default function RebanhoPage() {
               <div className="text-xs text-gray-500 space-y-1">
                 <p>🧬 {animal.breed}</p>
                 {animal.birthDate && <p>📅 {calcAge(animal.birthDate)}</p>}
-                <p>🥛 Leiteira</p>
+                <p>{animal.type === 'DAIRY' ? '🥛' : '🐮'} {LABELS.animalType[animal.type]}</p>
               </div>
             </Link>
           ))}

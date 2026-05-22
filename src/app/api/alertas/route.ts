@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         ...(unreadOnly && { isRead: false }),
         ...dueDateFilter,
       },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ dueDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }],
     })
 
     return NextResponse.json({ data: alerts })

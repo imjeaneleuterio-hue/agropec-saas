@@ -24,6 +24,8 @@ export default function FinanceiroPage() {
   const [saveError, setSaveError] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -43,6 +45,16 @@ export default function FinanceiroPage() {
     setSaveError('')
     setSaveSuccess(false)
     setShowModal(true)
+  }
+
+  async function handleDelete(id: string) {
+    setConfirmDeleteId(null)
+    setDeletingId(id)
+    try {
+      await fetch(`/api/financeiro?id=${id}`, { method: 'DELETE' })
+      setRecords((prev) => prev.filter((r) => r.id !== id))
+    } catch {}
+    setDeletingId(null)
   }
 
   async function handleSave() {
@@ -267,6 +279,25 @@ export default function FinanceiroPage() {
                     {LABELS.paymentStatus[record.paymentStatus]}
                   </span>
                 </div>
+                {confirmDeleteId === record.id ? (
+                  <div className="flex-shrink-0 flex items-center gap-2 ml-2">
+                    <span className="text-xs text-gray-600">Apagar?</span>
+                    <button onClick={() => handleDelete(record.id)}
+                      className="px-2.5 py-1 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
+                      Sim
+                    </button>
+                    <button onClick={() => setConfirmDeleteId(null)}
+                      className="px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                      Não
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setConfirmDeleteId(record.id)} disabled={deletingId === record.id}
+                    title="Apagar lançamento"
+                    className="flex-shrink-0 ml-2 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
+                    {deletingId === record.id ? '...' : '🗑️'}
+                  </button>
+                )}
               </div>
             ))}
           </div>

@@ -66,7 +66,7 @@ export default function LeitePage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([loadDailyRecords(), loadAnimalRecords()]).finally(() => setLoading(false))
-    fetch('/api/animais?limit=200').then((r) => r.json()).then((d) => setAnimals(d.data ?? [])).catch(() => {})
+    fetch('/api/animais?type=DAIRY&limit=200').then((r) => r.json()).then((d) => setAnimals(d.data ?? [])).catch(() => {})
   }, [loadDailyRecords, loadAnimalRecords])
 
   // ---- chart: last 7 days from daily records ----
