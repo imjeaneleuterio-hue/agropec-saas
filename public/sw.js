@@ -3,7 +3,14 @@ self.addEventListener('install', () => {
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      // Avisa todas as abas que há uma nova versão
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }))
+      })
+    })
+  )
 })
 
 self.addEventListener('push', (event) => {
