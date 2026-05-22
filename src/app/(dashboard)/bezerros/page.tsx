@@ -7,6 +7,11 @@ import type { Animal } from '@/types'
 
 const WEANING_AGE_DAYS = 60
 
+const EMPTY_FORM = {
+  tag: '', name: '', breed: '', sex: 'FEMALE',
+  birthDate: '', motherId: '', status: 'ACTIVE', observations: '',
+}
+
 export default function BezerrosPage() {
   const [calves, setCalves] = useState<Animal[]>([])
   const [cows, setCows] = useState<Animal[]>([])
@@ -15,12 +20,11 @@ export default function BezerrosPage() {
   const [filterSex, setFilterSex] = useState('ALL')
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [promoting, setPromoting] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
-  const [form, setForm] = useState({
-    tag: '', name: '', breed: '', sex: 'FEMALE',
-    birthDate: '', motherId: '', status: 'ACTIVE', observations: '',
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
 
   useEffect(() => { load() }, [])
 
@@ -70,7 +74,24 @@ export default function BezerrosPage() {
   }
 
   function openModal() {
-    setForm({ tag: '', name: '', breed: '', sex: 'FEMALE', birthDate: '', motherId: '', status: 'ACTIVE', observations: '' })
+    setForm(EMPTY_FORM)
+    setEditingId(null)
+    setFormError('')
+    setShowModal(true)
+  }
+
+  function openEditModal(calf: Animal) {
+    setForm({
+      tag: calf.tag,
+      name: calf.name ?? '',
+      breed: calf.breed,
+      sex: calf.sex,
+      birthDate: calf.birthDate ? calf.birthDate.slice(0, 10) : '',
+      motherId: calf.motherId ?? '',
+      status: calf.status,
+      observations: calf.observations ?? '',
+    })
+    setEditingId(calf.id)
     setFormError('')
     setShowModal(true)
   }
@@ -80,10 +101,13 @@ export default function BezerrosPage() {
     setSaving(true)
     setFormError('')
     try {
-      const res = await fetch('/api/animais', {
-        method: 'POST',
+      const url = editingId ? `/api/animais/${editingId}` : '/api/animais'
+      const method = editingId ? 'PUT' : 'POST'
+      const body = editingId ? form : { ...form, type: 'CALF' }
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, type: 'CALF' }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (!res.ok) { setFormError(data.error ?? 'Erro ao salvar'); setSaving(false); return }
@@ -93,6 +117,21 @@ export default function BezerrosPage() {
       setFormError('Erro de conexão')
     }
     setSaving(false)
+  }
+
+  async function handlePromote(calf: Animal) {
+    const label = calf.name ?? `Bezerro #${calf.tag}`
+    if (!confirm(`Promover ${label} para Vaca Leiteira?\n\nEla sairá da lista de bezerros e aparecerá em Vacas.`)) return
+    setPromoting(calf.id)
+    try {
+      const res = await fetch(`/api/animais/${calf.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'DAIRY' }),
+      })
+      if (res.ok) load()
+    } catch {}
+    setPromoting(null)
   }
 
   return (
@@ -174,6 +213,7 @@ export default function BezerrosPage() {
                   <th className="text-left px-4 py-3 font-semibold text-gray-600">Idade</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Mãe</th>
                   <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -210,6 +250,25 @@ export default function BezerrosPage() {
                           {LABELS.status[calf.status]}
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => openEditModal(calf)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            Editar
+                          </button>
+                          {calf.sex === 'FEMALE' && calf.status === 'ACTIVE' && (
+                            <button
+                              onClick={() => handlePromote(calf)}
+                              disabled={promoting === calf.id}
+                              className="text-xs text-green-600 hover:text-green-800 font-medium disabled:opacity-50"
+                            >
+                              {promoting === calf.id ? '...' : 'Promover'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}
@@ -219,12 +278,14 @@ export default function BezerrosPage() {
         </div>
       )}
 
-      {/* Modal de cadastro */}
+      {/* Modal de cadastro/edição */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Cadastrar Bezerro</h2>
+              <h2 className="text-lg font-bold text-gray-900">
+                {editingId ? 'Editar Bezerro' : 'Cadastrar Bezerro'}
+              </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4 overflow-y-auto">
@@ -282,6 +343,17 @@ export default function BezerrosPage() {
                   ))}
                 </select>
               </div>
+              {editingId && (
+                <div>
+                  <label className="label-field">Status</label>
+                  <select className="input-field" value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
+                    <option value="ACTIVE">Ativo</option>
+                    <option value="SOLD">Vendido</option>
+                    <option value="DEAD">Morto</option>
+                    <option value="TRANSFERRED">Transferido</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="label-field">Observações</label>
                 <textarea
@@ -293,7 +365,7 @@ export default function BezerrosPage() {
               <div className="flex justify-end gap-3 pt-1">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-ghost">Cancelar</button>
                 <button type="submit" disabled={saving} className="btn-primary">
-                  {saving ? 'Salvando...' : 'Cadastrar'}
+                  {saving ? 'Salvando...' : editingId ? 'Salvar' : 'Cadastrar'}
                 </button>
               </div>
             </form>

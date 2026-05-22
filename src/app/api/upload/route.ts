@@ -8,6 +8,12 @@ const supabase = createClient(
 )
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
 const MAX_SIZE = 5 * 1024 * 1024
 
 export async function POST(request: Request) {
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Arquivo muito grande. Máximo 5MB.' }, { status: 400 })
     }
 
-    const ext = file.name.split('.').pop() ?? 'jpg'
+    const ext = MIME_TO_EXT[file.type] ?? 'jpg'
     const fileName = `${session.userId}/${Date.now()}.${ext}`
 
     const buffer = Buffer.from(await file.arrayBuffer())

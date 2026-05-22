@@ -8,16 +8,16 @@ const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_T
 
 function validateMPSignature(request: Request, rawBody: string): boolean {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
-  if (!secret) return true // se não configurou, aceita (modo desenvolvimento)
+  if (!secret) {
+    // Em produção, rejeitar requisições sem chave configurada
+    return process.env.NODE_ENV !== 'production'
+  }
   const signature = request.headers.get('x-signature') ?? ''
-  const requestId = request.headers.get('x-request-id') ?? ''
-  const { searchParams } = new URL(request.url)
-  const dataId = searchParams.get('data.id') ?? ''
-  const manifest = `id:${dataId};request-id:${requestId};ts:${signature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] ?? ''};`
   const ts = signature.split(',').find(p => p.startsWith('ts='))?.split('=')[1] ?? ''
   const v1 = signature.split(',').find(p => p.startsWith('v1='))?.split('=')[1] ?? ''
+  if (!v1) return false
   const expected = createHmac('sha256', secret).update(`${ts}${rawBody}`).digest('hex')
-  return !v1 || v1 === expected || manifest.length > 0
+  return v1 === expected
 }
 
 async function activatePlan(userId: string, plan: PlanKey, preapprovalId?: string) {
@@ -45,13 +45,21 @@ async function processPayment(paymentId: string) {
 
 export async function POST(request: Request) {
   try {
+    const rawBody = await request.text()
+
+    if (!validateMPSignature(request, rawBody)) {
+      console.warn('[WEBHOOK MP] Assinatura inválida rejeitada')
+      return NextResponse.json({ ok: true }, { status: 200 })
+    }
+
     // Lê body e query params — MP usa formatos diferentes dependendo da versão
     const { searchParams } = new URL(request.url)
-    const body = await request.json().catch(() => ({}))
+    let body: Record<string, unknown> = {}
+    try { body = JSON.parse(rawBody) } catch {}
 
     // Normaliza topic e id dos dois formatos (webhook novo e IPN antigo)
-    const topic = body?.type ?? body?.topic ?? searchParams.get('topic') ?? ''
-    const id = body?.data?.id ?? body?.id ?? searchParams.get('id') ?? ''
+    const topic = (body?.type ?? body?.topic ?? searchParams.get('topic') ?? '') as string
+    const id = (body?.data as Record<string,unknown>)?.id ?? body?.id ?? searchParams.get('id') ?? ''
 
     if (!id) return NextResponse.json({ ok: true })
 

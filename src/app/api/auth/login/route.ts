@@ -3,19 +3,12 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signToken } from '@/lib/auth'
 import { loginSchema } from '@/lib/validations'
-import { checkRateLimit } from '@/lib/rateLimit'
+
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MINUTES = 15
 
 export async function POST(request: Request) {
   try {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-    const { allowed, retryAfterSeconds } = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
-    if (!allowed) {
-      return NextResponse.json(
-        { error: `Muitas tentativas. Tente novamente em ${Math.ceil(retryAfterSeconds / 60)} minutos.` },
-        { status: 429, headers: { 'Retry-After': String(retryAfterSeconds) } }
-      )
-    }
-
     const body = await request.json()
     const parsed = loginSchema.safeParse(body)
     if (!parsed.success) {
@@ -33,6 +26,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'E-mail ou senha incorretos' }, { status: 401 })
     }
 
+    // Verifica bloqueio por tentativas excessivas
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000)
+      return NextResponse.json(
+        { error: `Conta bloqueada por excesso de tentativas. Tente novamente em ${minutesLeft} minuto${minutesLeft !== 1 ? 's' : ''}.` },
+        { status: 429 }
+      )
+    }
+
     if (!user.isActive) {
       return NextResponse.json(
         { error: 'Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.' },
@@ -42,8 +44,29 @@ export async function POST(request: Request) {
 
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) {
+      const newAttempts = (user.loginAttempts ?? 0) + 1
+      const shouldLock = newAttempts >= MAX_ATTEMPTS
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          loginAttempts: newAttempts,
+          lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000) : null,
+        },
+      })
+      if (shouldLock) {
+        return NextResponse.json(
+          { error: `Muitas tentativas incorretas. Conta bloqueada por ${LOCKOUT_MINUTES} minutos.` },
+          { status: 429 }
+        )
+      }
       return NextResponse.json({ error: 'E-mail ou senha incorretos' }, { status: 401 })
     }
+
+    // Login bem-sucedido: zera contador
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { loginAttempts: 0, lockedUntil: null },
+    })
 
     const token = await signToken({
       userId: user.id,

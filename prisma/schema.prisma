@@ -22,6 +22,8 @@ model User {
   verificationTokenExpiry DateTime?
   resetToken              String?       @unique
   resetTokenExpiry        DateTime?
+  loginAttempts           Int           @default(0)
+  lockedUntil             DateTime?
   createdAt               DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   farms             Farm[]

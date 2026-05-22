@@ -78,6 +78,37 @@ export async function POST(request: Request) {
       data: { ...data, date: eventDate, expectedCalving },
     })
 
+    // Auto-criar bezerro e alerta de desmame quando o parto é registrado
+    let createdCalf: { id: string; tag: string } | null = null
+    if (data.type === 'CALVING') {
+      const calfTag = `BZ-${Date.now().toString().slice(-6)}`
+      createdCalf = await prisma.animal.create({
+        data: {
+          tag: calfTag,
+          farmId,
+          type: 'CALF',
+          sex: 'FEMALE',
+          breed: animal.breed,
+          birthDate: eventDate,
+          motherId: animal.id,
+          status: 'ACTIVE',
+        },
+      })
+      const desmameDate = addDays(eventDate, 60)
+      const motherLabel = animal.name ?? `#${animal.tag}`
+      await prisma.alert.create({
+        data: {
+          farmId,
+          type: 'GENERAL',
+          title: `Desmame — Bezerro de ${motherLabel}`,
+          description: `Bezerro ${calfTag} de ${motherLabel} atingirá 60 dias em ${desmameDate.toLocaleDateString('pt-BR')}.`,
+          dueDate: desmameDate,
+          priority: 'MEDIUM',
+          animalId: createdCalf.id,
+        },
+      })
+    }
+
     {
       const animalLabel = animal?.name ?? `#${animal?.tag}`
 
@@ -92,15 +123,15 @@ export async function POST(request: Request) {
         })
       }
 
-      // Cancela alerta de secagem anterior (novo ciclo, secagem realizada, aborto ou diagnóstico negativo)
-      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'DRY_OFF', 'ABORTION', 'PREGNANCY_CHECK_NEGATIVE'].includes(data.type)) {
+      // Cancela alerta de secagem anterior (novo ciclo, secagem realizada, aborto, diagnóstico negativo ou parto)
+      if (['INSEMINATION', 'NATURAL_MATING', 'PREGNANCY_CHECK_POSITIVE', 'DRY_OFF', 'ABORTION', 'PREGNANCY_CHECK_NEGATIVE', 'CALVING'].includes(data.type)) {
         await prisma.alert.deleteMany({
           where: { farmId, animalId: data.animalId, title: { startsWith: 'Secar Vaca' } },
         })
       }
 
-      // Cancela alerta de parto previsto em caso de aborto ou diagnóstico negativo
-      if (['ABORTION', 'PREGNANCY_CHECK_NEGATIVE'].includes(data.type)) {
+      // Cancela alerta de parto previsto em caso de aborto, diagnóstico negativo ou parto ocorrido
+      if (['ABORTION', 'PREGNANCY_CHECK_NEGATIVE', 'CALVING'].includes(data.type)) {
         await prisma.alert.deleteMany({
           where: { farmId, animalId: data.animalId, title: { startsWith: 'Parto Previsto' } },
         })
@@ -180,7 +211,10 @@ export async function POST(request: Request) {
       await incrementTrialUsage(session.userId, 'reproducao')
     }
 
-    return NextResponse.json({ data: event, message: 'Evento registrado com sucesso' }, { status: 201 })
+    const message = createdCalf
+      ? `Parto registrado. Bezerro ${createdCalf.tag} criado automaticamente — edite-o em Bezerros.`
+      : 'Evento registrado com sucesso'
+    return NextResponse.json({ data: event, createdCalf, message }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
