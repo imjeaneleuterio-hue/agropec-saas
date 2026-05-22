@@ -1,7 +1,7 @@
 {
   "name": "J.ELEUPEC",
   "short_name": "J.ELEUPEC",
-  "description": "Gestão completa de pecuária leiteira e de corte",
+  "description": "Gestão completa de pecuária leiteira",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
