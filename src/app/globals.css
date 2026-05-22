@@ -115,20 +115,20 @@
 .card {
   background-color: #fff;
   border-radius: 0.75rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: var(--shadow-card);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.08);
 }
 .card-hover {
   background-color: #fff;
   border-radius: 0.75rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: var(--shadow-card);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.08);
   transition: all 0.2s;
   text-decoration: none;
   display: block;
 }
 .card-hover:hover {
-  box-shadow: var(--shadow-card-lg);
+  box-shadow: 0 8px 24px 0 rgba(0,0,0,0.18), 0 2px 4px 0 rgba(0,0,0,0.1);
   transform: translateY(-2px);
 }
 
@@ -151,8 +151,8 @@
 .stat-card {
   background-color: #fff;
   border-radius: 0.75rem;
-  border: 1px solid #f3f4f6;
-  box-shadow: var(--shadow-card);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.12), 0 1px 2px 0 rgba(0,0,0,0.08);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -168,7 +168,7 @@
 }
 
 /* ── Scrollbar ─────────────────────────────────────── */
-.scrollbar-thin { scrollbar-width: thin; scrollbar-color: #e5e7eb transparent; }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
 .scrollbar-thin::-webkit-scrollbar       { width: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }

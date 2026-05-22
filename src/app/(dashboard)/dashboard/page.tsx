@@ -5,6 +5,11 @@ import { formatCurrency, formatNumber, formatDate } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import Link from 'next/link'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
+import {
+  Tag, Droplets, Bell, TrendingUp, Heart, CreditCard,
+  CheckCircle, CalendarDays,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 const EMPTY_STATS: DashboardStats = {
   totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0,
@@ -29,7 +34,7 @@ function getSaudacao(nome?: string | null): string {
   const h = new Date().getHours()
   const period = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
   const first = nome?.split(' ')[0]
-  return first ? `${period}, ${first}! 👋` : `${period}! 👋`
+  return first ? `${period}, ${first}!` : `${period}!`
 }
 
 export default function DashboardPage() {
@@ -63,13 +68,12 @@ export default function DashboardPage() {
       if (dash.data) setStats({ ...EMPTY_STATS, ...dash.data })
       if (Array.isArray(alertsRes.data)) setAlerts(alertsRes.data.slice(0, 3))
 
-      // Build 7-day milk chart from DailyMilkTotal
       const days: { dateStr: string; label: string }[] = []
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today)
         d.setDate(today.getDate() - i)
         days.push({
-          dateStr: d.toLocaleDateString('en-CA'), // YYYY-MM-DD
+          dateStr: d.toLocaleDateString('en-CA'),
           label: d.toLocaleDateString('pt-BR', { weekday: 'short' }),
         })
       }
@@ -135,20 +139,20 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon="🐄" label="Total de Animais" value={stats.totalAnimals.toString()}
+            <StatCard icon={Tag} label="Total de Animais" value={stats.totalAnimals.toString()}
               sub={`${stats.activeAnimals} ativos`} color="green" />
-            <StatCard icon="🥛" label="Produção Hoje" value={`${formatNumber(stats.todayMilkTotal)} L`}
+            <StatCard icon={Droplets} label="Produção Hoje" value={`${formatNumber(stats.todayMilkTotal)} L`}
               sub={`${formatNumber(stats.monthMilkTotal)} L no mês`} color="blue" />
-            <StatCard icon="🔔" label="Alertas Pendentes" value={stats.pendingAlerts.toString()}
+            <StatCard icon={Bell} label="Alertas Pendentes" value={stats.pendingAlerts.toString()}
               sub={`${stats.criticalAlerts} críticos`} color="red" link="/alertas" />
-            <StatCard icon="💰" label="Saldo do Mês" value={formatCurrency(balance)}
+            <StatCard icon={TrendingUp} label="Saldo do Mês" value={formatCurrency(balance)}
               sub={`Receita: ${formatCurrency(stats.monthIncome)}`} color={balance >= 0 ? 'green' : 'red'} />
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <MiniCard label="Leiteiras" value={stats.dairyAnimals} icon="🥛" />
-            <MiniCard label="Prenhas" value={stats.pregnantAnimals} icon="🤰" />
-            <MiniCard label="A Pagar Mês" value={formatCurrency(stats.monthExpense)} icon="💸" isText />
+            <MiniCard label="Leiteiras" value={stats.dairyAnimals} icon={Droplets} />
+            <MiniCard label="Prenhas" value={stats.pregnantAnimals} icon={Heart} />
+            <MiniCard label="A Pagar Mês" value={formatCurrency(stats.monthExpense)} icon={CreditCard} isText />
           </div>
         </>
       )}
@@ -180,10 +184,10 @@ export default function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400">
-              <p className="text-3xl mb-2">🥛</p>
+            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400 gap-2">
+              <Droplets className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhuma produção registrada nos últimos 7 dias.</p>
-              <Link href="/leite" className="text-primary-600 text-sm hover:underline mt-1">Registrar produção →</Link>
+              <Link href="/leite" className="text-primary-600 text-sm hover:underline">Registrar produção →</Link>
             </div>
           )}
         </div>
@@ -194,8 +198,8 @@ export default function DashboardPage() {
             <Link href="/alertas" className="text-sm text-primary-600 hover:underline">Ver todos →</Link>
           </div>
           {alerts.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <p className="text-3xl mb-2">✅</p>
+            <div className="text-center py-8 text-gray-400 flex flex-col items-center gap-2">
+              <CheckCircle className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhum alerta pendente!</p>
             </div>
           ) : (
@@ -221,10 +225,10 @@ export default function DashboardPage() {
             <Link href="/financeiro" className="text-sm text-primary-600 hover:underline">Ver mais →</Link>
           </div>
           {stats.monthIncome === 0 && stats.monthExpense === 0 ? (
-            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400">
-              <p className="text-3xl mb-2">💰</p>
+            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400 gap-2">
+              <TrendingUp className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhum lançamento financeiro este mês.</p>
-              <Link href="/financeiro" className="text-primary-600 text-sm hover:underline mt-1">Registrar lançamento →</Link>
+              <Link href="/financeiro" className="text-primary-600 text-sm hover:underline">Registrar lançamento →</Link>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
@@ -279,16 +283,18 @@ export default function DashboardPage() {
   )
 }
 
-function StatCard({ icon, label, value, sub, color, link }: {
-  icon: string; label: string; value: string; sub?: string; color: string; link?: string
+function StatCard({ icon: Icon, label, value, sub, color, link }: {
+  icon: LucideIcon; label: string; value: string; sub?: string; color: string; link?: string
 }) {
   const colorMap: Record<string, string> = {
-    green: 'bg-green-50 text-green-700', blue: 'bg-blue-50 text-blue-700',
-    red: 'bg-red-50 text-red-700', yellow: 'bg-yellow-50 text-yellow-700',
+    green: 'bg-green-50 text-green-600', blue: 'bg-blue-50 text-blue-600',
+    red: 'bg-red-50 text-red-600', yellow: 'bg-yellow-50 text-yellow-600',
   }
   const content = (
     <div className="stat-card hover:shadow-card-lg transition-shadow">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${colorMap[color] ?? colorMap.green}`}>{icon}</div>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color] ?? colorMap.green}`}>
+        <Icon className="w-5 h-5" />
+      </div>
       <div>
         <p className="text-2xl font-bold text-gray-900">{value}</p>
         <p className="text-xs text-gray-500 mt-0.5">{label}</p>
@@ -299,10 +305,12 @@ function StatCard({ icon, label, value, sub, color, link }: {
   return link ? <Link href={link}>{content}</Link> : content
 }
 
-function MiniCard({ label, value, icon, isText }: { label: string; value: number | string; icon: string; isText?: boolean }) {
+function MiniCard({ label, value, icon: Icon, isText }: { label: string; value: number | string; icon: LucideIcon; isText?: boolean }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3">
-      <span className="text-xl">{icon}</span>
+      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-gray-500" />
+      </div>
       <div>
         <p className={`font-bold text-gray-900 ${isText ? 'text-base' : 'text-lg'}`}>{value}</p>
         <p className="text-xs text-gray-500">{label}</p>
@@ -318,7 +326,10 @@ function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
   return (
     <div className="card p-5">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="section-title">❤️ Previsão de Cio — próximos 14 dias</h2>
+        <h2 className="section-title flex items-center gap-2">
+          <CalendarDays className="w-5 h-5 text-pink-500" />
+          Previsão de Cio — próximos 14 dias
+        </h2>
         <Link href="/reproducao" className="text-sm text-primary-600 hover:underline">Ver reprodução →</Link>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -332,7 +343,7 @@ function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
           const textColor = days <= 1 ? 'text-pink-700' : days <= 5 ? 'text-orange-600' : 'text-gray-500'
           return (
             <div key={item.id} className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${color}`}>
-              <span className="text-2xl">🐄</span>
+              <Tag className="w-5 h-5 text-gray-400 shrink-0" />
               <div className="min-w-0">
                 <p className="font-semibold text-gray-900 text-sm truncate">{animalName}</p>
                 <p className={`text-xs font-medium ${textColor}`}>
