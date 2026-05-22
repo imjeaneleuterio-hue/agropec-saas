@@ -178,7 +178,7 @@ export default function ReproducaoPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: '🤰', label: 'Diagnósticos Positivos', value: pregnant, color: 'bg-green-50 text-green-700' },
+          { icon: '🤰', label: 'Prenhas', value: pregnant, color: 'bg-green-50 text-green-700' },
           { icon: '💉', label: 'IA / Monta (30d)', value: inseminated30, color: 'bg-blue-50 text-blue-700' },
           { icon: '🐮', label: 'Partos Previstos (30d)', value: calvings30, color: 'bg-yellow-50 text-yellow-700' },
           { icon: '🚫', label: 'Secagens Registradas', value: dryOff, color: 'bg-gray-50 text-gray-700' },
@@ -197,7 +197,7 @@ export default function ReproducaoPage() {
       {provavelmentePrenhas.length > 0 && (
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="section-title">🤰 Provavelmente Prenhas</h2>
+            <h2 className="section-title">🤰 Prenhas</h2>
             <span className="text-xs text-gray-400 font-normal">(monta/IA há +30 dias sem evento negativo)</span>
           </div>
           <div className="space-y-3">
