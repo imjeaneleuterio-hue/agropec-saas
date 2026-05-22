@@ -116,7 +116,39 @@ export default function ReproducaoPage() {
   const now = new Date()
   const filtered = filterType === 'ALL' ? events : events.filter((e) => e.type === filterType)
 
-  const pregnant = events.filter((e) => e.type === 'PREGNANCY_CHECK_POSITIVE').length
+  // Vacas provavelmente prenhas: monta/IA há +30 dias sem evento negativo posterior por animal
+  const provavelmentePrenhas = (() => {
+    const NEGATIVO = new Set(['PREGNANCY_CHECK_NEGATIVE', 'ABORTION', 'CALVING', 'DRY_OFF'])
+    // Agrupa todos os eventos por animal
+    const porAnimal = new Map<string, ReproductiveEvent[]>()
+    for (const e of events) {
+      const aid = e.animalId ?? e.animal?.id
+      if (!aid) continue
+      if (!porAnimal.has(aid)) porAnimal.set(aid, [])
+      porAnimal.get(aid)!.push(e)
+    }
+    const result: ReproductiveEvent[] = []
+    for (const [, evs] of porAnimal) {
+      const sorted = [...evs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      // Pega o evento de cobertura mais recente
+      const cobertura = sorted.find((e) => e.type === 'INSEMINATION' || e.type === 'NATURAL_MATING')
+      if (!cobertura) continue
+      const diasDesde = (now.getTime() - new Date(cobertura.date).getTime()) / 86400000
+      if (diasDesde < 30) continue // ainda cedo demais para presumir prenhez
+      // Verifica se houve evento negativo APÓS a cobertura
+      const temNegativo = sorted.some(
+        (e) => NEGATIVO.has(e.type) && new Date(e.date) > new Date(cobertura.date)
+      )
+      // Verifica se já tem diagnóstico positivo confirmado (evita duplicar)
+      const temPositivo = sorted.some(
+        (e) => e.type === 'PREGNANCY_CHECK_POSITIVE' && new Date(e.date) > new Date(cobertura.date)
+      )
+      if (!temNegativo && !temPositivo) result.push(cobertura)
+    }
+    return result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  })()
+
+  const pregnant = events.filter((e) => e.type === 'PREGNANCY_CHECK_POSITIVE').length + provavelmentePrenhas.length
   const inseminated30 = events.filter((e) => {
     if (e.type !== 'INSEMINATION' && e.type !== 'NATURAL_MATING') return false
     const d = new Date(e.date)
@@ -160,6 +192,41 @@ export default function ReproducaoPage() {
           </div>
         ))}
       </div>
+
+      {/* Vacas provavelmente prenhas */}
+      {provavelmentePrenhas.length > 0 && (
+        <div className="card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="section-title">🤰 Provavelmente Prenhas</h2>
+            <span className="text-xs text-gray-400 font-normal">(monta/IA há +30 dias sem evento negativo)</span>
+          </div>
+          <div className="space-y-3">
+            {provavelmentePrenhas.map((e) => {
+              const dias = Math.floor((now.getTime() - new Date(e.date).getTime()) / 86400000)
+              const partoPrevisto = new Date(e.date)
+              partoPrevisto.setDate(partoPrevisto.getDate() + 283)
+              return (
+                <div key={e.id} className="flex items-center gap-4 p-3 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="text-2xl">🤰</div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      {e.animal?.name ?? 'Animal'} <span className="text-gray-500 text-sm">#{e.animal?.tag}</span>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {e.type === 'INSEMINATION' ? 'Inseminada' : 'Montada'} em {formatDate(e.date)} · <span className="font-medium">{dias} dias</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Parto estimado</p>
+                    <p className="font-semibold text-gray-900">{formatDate(partoPrevisto)}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <p className="text-xs text-gray-400 mt-3">Confirme registrando um Diagnóstico Positivo para cada animal.</p>
+        </div>
+      )}
 
       {/* Upcoming Calvings */}
       {upcomingCalvings.length > 0 && (
