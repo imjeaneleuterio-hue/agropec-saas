@@ -25,6 +25,13 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 type DayMilk = { day: string; liters: number }
 
+function getSaudacao(nome?: string | null): string {
+  const h = new Date().getHours()
+  const period = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
+  const first = nome?.split(' ')[0]
+  return first ? `${period}, ${first}! 👋` : `${period}! 👋`
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>(EMPTY_STATS)
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -33,11 +40,16 @@ export default function DashboardPage() {
   const [farmNotes, setFarmNotes] = useState<{ id: string; content: string; createdAt: string }[]>([])
   const [newNote, setNewNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
+  const [userName, setUserName] = useState<string | null>(null)
 
   useEffect(() => {
     const today = new Date()
     const sevenDaysAgo = new Date(today)
     sevenDaysAgo.setDate(today.getDate() - 6)
+
+    fetch('/api/auth/me').then((r) => r.json()).then((d) => {
+      if (d.data?.name) setUserName(d.data.name)
+    }).catch(() => {})
 
     fetch('/api/fazenda/notas').then((r) => r.json()).then((res) => {
       if (Array.isArray(res.data)) setFarmNotes(res.data)
@@ -108,7 +120,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="page-title">Bom dia, produtor! 👋</h1>
+          <h1 className="page-title">{getSaudacao(userName)}</h1>
           <p className="text-gray-500 text-sm mt-0.5">{formatDate(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy")}</p>
         </div>
         <Link href="/rebanho/novo" className="btn-primary">+ Cadastrar Animal</Link>
@@ -232,7 +244,7 @@ export default function DashboardPage() {
           <h2 className="section-title">Anotações da Fazenda</h2>
           <div className="flex gap-2">
             <textarea
-              className="input resize-none text-sm flex-1"
+              className="input-field resize-none text-sm flex-1"
               rows={2}
               placeholder="Escreva uma anotação..."
               value={newNote}

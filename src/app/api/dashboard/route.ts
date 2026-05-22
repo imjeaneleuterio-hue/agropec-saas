@@ -10,12 +10,12 @@ export async function GET() {
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     const farmId = await getActiveFarmId(session.userId)
-    if (!farmId) return NextResponse.json({ data: { totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0, beefAnimals: 0, todayMilkTotal: 0, monthMilkTotal: 0, pendingAlerts: 0, criticalAlerts: 0, monthIncome: 0, monthExpense: 0, pregnantAnimals: 0 } })
+    if (!farmId) return NextResponse.json({ data: { totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0, todayMilkTotal: 0, monthMilkTotal: 0, pendingAlerts: 0, criticalAlerts: 0, monthIncome: 0, monthExpense: 0, pregnantAnimals: 0 } })
 
     const now = new Date()
 
     const [
-      totalAnimals, activeAnimals, dairyAnimals, beefAnimals,
+      totalAnimals, activeAnimals, dairyAnimals,
       todayMilk, monthMilk,
       pendingAlerts, criticalAlerts,
       monthIncome, monthExpense,
@@ -25,7 +25,6 @@ export async function GET() {
       prisma.animal.count({ where: { farmId } }),
       prisma.animal.count({ where: { farmId, status: 'ACTIVE' } }),
       prisma.animal.count({ where: { farmId, type: 'DAIRY', status: 'ACTIVE' } }),
-      prisma.animal.count({ where: { farmId, type: 'BEEF', status: 'ACTIVE' } }),
       prisma.dailyMilkTotal.aggregate({
         where: { farmId, date: { gte: startOfDay(now), lte: endOfDay(now) } },
         _sum: { totalLiters: true },
@@ -61,7 +60,7 @@ export async function GET() {
 
     return NextResponse.json({
       data: {
-        totalAnimals, activeAnimals, dairyAnimals, beefAnimals,
+        totalAnimals, activeAnimals, dairyAnimals,
         todayMilkTotal: todayMilk._sum.totalLiters ?? 0,
         monthMilkTotal: monthMilk._sum.totalLiters ?? 0,
         pendingAlerts, criticalAlerts,
