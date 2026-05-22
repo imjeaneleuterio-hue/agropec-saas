@@ -122,29 +122,17 @@ export function VoiceButton() {
   async function transcreverEInterpretar(blob: Blob, mimeType: string) {
     setEstado('transcrevendo')
     try {
-      // 1. Transcreve
       const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
       const formData = new FormData()
       formData.append('audio', new File([blob], `audio.${ext}`, { type: mimeType }))
-      const transcRes = await fetch('/api/ia/voz/transcricao', { method: 'POST', body: formData })
-      const transcData = await transcRes.json()
-      if (!transcRes.ok) throw new Error(transcData.error ?? 'Erro na transcrição')
-      const texto: string = transcData.texto
-      setTranscricao(texto)
-
-      // 2. Interpreta
-      const interpRes = await fetch('/api/ia/voz/interpretar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto }),
-      })
-      const interpData = await interpRes.json()
-      if (!interpRes.ok) {
-        if (handleTrialResponse(interpData)) { setEstado('idle'); return }
-        throw new Error(interpData.error ?? 'Erro na interpretação')
+      const res = await fetch('/api/ia/voz/transcricao', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        if (handleTrialResponse(data)) { setEstado('idle'); return }
+        throw new Error(data.error ?? 'Erro ao processar áudio')
       }
-
-      setInterpretacao(interpData)
+      if (data.texto) setTranscricao(data.texto)
+      setInterpretacao(data)
       setEstado('confirmando')
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : 'Erro inesperado.')
