@@ -29,6 +29,7 @@ const EMPTY_FORM = {
   type: '',
   date: new Date().toISOString().split('T')[0],
   bullName: '',
+  expectedCalving: '',
   result: '',
   notes: '',
 }
@@ -95,6 +96,7 @@ export default function ReproducaoPage() {
         type: form.type,
         date: form.date,
         bullName: form.bullName || undefined,
+        expectedCalving: form.expectedCalving || undefined,
         result: form.result || undefined,
         notes: form.notes || undefined,
       }),
@@ -122,7 +124,7 @@ export default function ReproducaoPage() {
   }).length
 
   const upcomingCalvings = events
-    .filter((e) => (e.type === 'INSEMINATION' || e.type === 'NATURAL_MATING') && e.expectedCalving && new Date(e.expectedCalving) > now)
+    .filter((e) => (e.type === 'INSEMINATION' || e.type === 'NATURAL_MATING' || e.type === 'PREGNANCY_CHECK_POSITIVE') && e.expectedCalving && new Date(e.expectedCalving) > now)
     .sort((a, b) => new Date(a.expectedCalving!).getTime() - new Date(b.expectedCalving!).getTime())
     .slice(0, 5)
 
@@ -307,6 +309,18 @@ export default function ReproducaoPage() {
                     value={form.bullName}
                     onChange={(e) => setForm({ ...form, bullName: e.target.value })}
                   />
+                </div>
+              )}
+              {form.type === 'PREGNANCY_CHECK_POSITIVE' && (
+                <div>
+                  <label className="label">Data prevista do parto <span className="text-gray-400 font-normal">(opcional)</span></label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={form.expectedCalving}
+                    onChange={(e) => setForm({ ...form, expectedCalving: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Se não informar, será calculado automaticamente (~250 dias a partir do diagnóstico).</p>
                 </div>
               )}
               {(form.type === 'PREGNANCY_CHECK_POSITIVE' || form.type === 'PREGNANCY_CHECK_NEGATIVE' || form.type === 'CALVING') && (

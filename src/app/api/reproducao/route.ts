@@ -65,10 +65,13 @@ export async function POST(request: Request) {
     const eventDate = new Date(data.date)
 
     let expectedCalving: Date | undefined
-    if ((data.type === 'INSEMINATION' || data.type === 'NATURAL_MATING') && !data.expectedCalving) {
-      expectedCalving = addDays(eventDate, 283)
-    } else if (data.expectedCalving) {
+    if (data.expectedCalving) {
       expectedCalving = new Date(data.expectedCalving)
+    } else if (data.type === 'INSEMINATION' || data.type === 'NATURAL_MATING') {
+      expectedCalving = addDays(eventDate, 283)
+    } else if (data.type === 'PREGNANCY_CHECK_POSITIVE') {
+      // Diagnóstico positivo geralmente ocorre ~30 dias após cobertura; restam ~250 dias
+      expectedCalving = addDays(eventDate, 250)
     }
 
     const event = await prisma.reproductiveEvent.create({
