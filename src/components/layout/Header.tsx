@@ -18,6 +18,21 @@ export function Header({ user, farms, onMenuClick, title }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [farmDropdownOpen, setFarmDropdownOpen] = useState(false)
   const [activeFarmId, setActiveFarmId] = useState<string>('')
+  const [installPrompt, setInstallPrompt] = useState<Event | null>(null)
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  async function handleInstall() {
+    if (!installPrompt) return
+    const prompt = installPrompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }
+    prompt.prompt()
+    await prompt.userChoice
+    setInstallPrompt(null)
+  }
 
   useEffect(() => {
     // Read the farm cookie (httpOnly: false so JS can read it)
@@ -124,6 +139,15 @@ export function Header({ user, farms, onMenuClick, title }: HeaderProps) {
             <span className="text-base">🏡</span>
             <span className="font-medium text-gray-700 max-w-[160px] truncate">{activeFarm.name}</span>
           </div>
+        )}
+
+        {installPrompt && (
+          <button
+            onClick={handleInstall}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg transition-colors"
+          >
+            📲 Instalar App
+          </button>
         )}
 
         <Link href="/alertas"
