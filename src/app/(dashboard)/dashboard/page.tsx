@@ -6,7 +6,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Link from 'next/link'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
 import {
-  Tag, Droplets, Bell, TrendingUp, Heart, CreditCard,
+  Tag, Droplets, Bell, TrendingUp, CreditCard,
   CheckCircle, CalendarDays,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -139,19 +139,19 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={Tag} label="Total de Animais" value={stats.totalAnimals.toString()}
+            <StatCard icon="🐄🐂" label="Total de Animais" value={stats.totalAnimals.toString()}
               sub={`${stats.activeAnimals} ativos`} color="green" />
-            <StatCard icon={Droplets} label="Produção Hoje" value={`${formatNumber(stats.todayMilkTotal)} L`}
+            <StatCard icon="🥛" label="Produção Hoje" value={`${formatNumber(stats.todayMilkTotal)} L`}
               sub={`${formatNumber(stats.monthMilkTotal)} L no mês`} color="blue" />
             <StatCard icon={Bell} label="Alertas Pendentes" value={stats.pendingAlerts.toString()}
               sub={`${stats.criticalAlerts} críticos`} color="red" link="/alertas" />
-            <StatCard icon={TrendingUp} label="Saldo do Mês" value={formatCurrency(balance)}
+            <StatCard icon="💰" label="Saldo do Mês" value={formatCurrency(balance)}
               sub={`Receita: ${formatCurrency(stats.monthIncome)}`} color={balance >= 0 ? 'green' : 'red'} />
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <MiniCard label="Leiteiras" value={stats.dairyAnimals} icon={Droplets} />
-            <MiniCard label="Prenhas" value={stats.pregnantAnimals} icon={Heart} />
+            <MiniCard label="Leiteiras" value={stats.dairyAnimals} icon="🐄" />
+            <MiniCard label="Prenhas" value={stats.pregnantAnimals} icon="🤰" />
             <MiniCard label="A Pagar Mês" value={formatCurrency(stats.monthExpense)} icon={CreditCard} isText />
           </div>
         </>
@@ -283,17 +283,22 @@ export default function DashboardPage() {
   )
 }
 
-function StatCard({ icon: Icon, label, value, sub, color, link }: {
-  icon: LucideIcon; label: string; value: string; sub?: string; color: string; link?: string
+function StatCard({ icon: iconProp, label, value, sub, color, link }: {
+  icon: LucideIcon | string; label: string; value: string; sub?: string; color: string; link?: string
 }) {
   const colorMap: Record<string, string> = {
     green: 'bg-green-50 text-green-600', blue: 'bg-blue-50 text-blue-600',
     red: 'bg-red-50 text-red-600', yellow: 'bg-yellow-50 text-yellow-600',
   }
+  function IconNode() {
+    if (typeof iconProp === 'string') return <span className="text-xl leading-none">{iconProp}</span>
+    const I = iconProp
+    return <I className="w-5 h-5" />
+  }
   const content = (
     <div className="stat-card hover:shadow-card-lg transition-shadow">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color] ?? colorMap.green}`}>
-        <Icon className="w-5 h-5" />
+        <IconNode />
       </div>
       <div>
         <p className="text-2xl font-bold text-gray-900">{value}</p>
@@ -305,11 +310,16 @@ function StatCard({ icon: Icon, label, value, sub, color, link }: {
   return link ? <Link href={link}>{content}</Link> : content
 }
 
-function MiniCard({ label, value, icon: Icon, isText }: { label: string; value: number | string; icon: LucideIcon; isText?: boolean }) {
+function MiniCard({ label, value, icon: iconProp, isText }: { label: string; value: number | string; icon: LucideIcon | string; isText?: boolean }) {
+  function IconNode() {
+    if (typeof iconProp === 'string') return <span className="text-lg leading-none">{iconProp}</span>
+    const I = iconProp
+    return <I className="w-4 h-4 text-gray-500" />
+  }
   return (
     <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3">
       <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-gray-500" />
+        <IconNode />
       </div>
       <div>
         <p className={`font-bold text-gray-900 ${isText ? 'text-base' : 'text-lg'}`}>{value}</p>
