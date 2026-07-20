@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: { default: 'J.ELEUPEC', template: '%s | J.ELEUPEC' },
+  title: { default: 'Jeleupec', template: '%s | Jeleupec' },
   description: 'Sistema completo de gestão para pecuária leiteira',
   manifest: '/manifest.json',
   icons: {
