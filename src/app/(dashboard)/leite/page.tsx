@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber, formatDate } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { enqueue, getQueue, flushQueue, type QueuedEntry } from '@/lib/offlineQueue'
 
 type DailyRecord = {
   id: string
@@ -14,6 +15,7 @@ type DailyRecord = {
   totalLiters: number
   notes?: string
   createdAt: string
+  pending?: boolean
 }
 
 type AnimalRecord = {
@@ -26,6 +28,7 @@ type AnimalRecord = {
   totalLiters: number
   notes?: string
   animal?: { id: string; name?: string; tag: string; breed: string }
+  pending?: boolean
 }
 
 type Animal = { id: string; name?: string; tag: string; breed: string }
@@ -33,6 +36,13 @@ type Tab = 'diario' | 'animal'
 
 const EMPTY_DAILY = { date: new Date().toISOString().split('T')[0], morningLiters: '', afternoonLiters: '', eveningLiters: '', notes: '' }
 const EMPTY_ANIMAL = { animalId: '', date: new Date().toISOString().split('T')[0], morningLiters: '', afternoonLiters: '', eveningLiters: '', notes: '' }
+
+function litersFromPayload(payload: Record<string, unknown>) {
+  const morning = Number(payload.morningLiters) || 0
+  const afternoon = Number(payload.afternoonLiters) || 0
+  const evening = Number(payload.eveningLiters) || 0
+  return { morning, afternoon, evening, total: morning + afternoon + evening }
+}
 
 export default function LeitePage() {
   const [tab, setTab] = useState<Tab>('diario')
@@ -44,8 +54,11 @@ export default function LeitePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [offlineSuccess, setOfflineSuccess] = useState(false)
   const [dailyForm, setDailyForm] = useState(EMPTY_DAILY)
   const [animalForm, setAnimalForm] = useState(EMPTY_ANIMAL)
+  const [queue, setQueue] = useState<QueuedEntry[]>([])
+  const [online, setOnline] = useState(true)
 
   const loadDailyRecords = useCallback(async () => {
     const thirtyDaysAgo = new Date()
@@ -69,6 +82,51 @@ export default function LeitePage() {
     fetch('/api/animais?type=DAIRY&limit=200').then((r) => r.json()).then((d) => setAnimals(d.data ?? [])).catch(() => {})
   }, [loadDailyRecords, loadAnimalRecords])
 
+  // ---- fila de lançamentos offline ----
+  useEffect(() => {
+    function syncQueue() { setQueue(getQueue()) }
+    function trySync() {
+      flushQueue().then(() => { syncQueue(); loadDailyRecords(); loadAnimalRecords() })
+    }
+    function handleOnline() { setOnline(true); trySync() }
+    function handleOffline() { setOnline(false) }
+
+    setOnline(navigator.onLine)
+    syncQueue()
+    if (navigator.onLine) trySync()
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    window.addEventListener('offline-queue:changed', syncQueue)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('offline-queue:changed', syncQueue)
+    }
+  }, [loadDailyRecords, loadAnimalRecords])
+
+  const pendingDaily: DailyRecord[] = useMemo(() => queue.filter((q) => q.kind === 'diario').map((q) => {
+    const { morning, afternoon, evening, total } = litersFromPayload(q.payload)
+    return {
+      id: `pending-${q.localId}`, farmId: '', date: String(q.payload.date ?? ''),
+      morningLiters: morning, afternoonLiters: afternoon, eveningLiters: evening, totalLiters: total,
+      notes: q.payload.notes as string | undefined, createdAt: q.createdAt, pending: true,
+    }
+  }), [queue])
+
+  const pendingAnimal: AnimalRecord[] = useMemo(() => queue.filter((q) => q.kind === 'animal').map((q) => {
+    const { morning, afternoon, evening, total } = litersFromPayload(q.payload)
+    const animal = animals.find((a) => a.id === q.payload.animalId)
+    return {
+      id: `pending-${q.localId}`, animalId: String(q.payload.animalId ?? ''), date: String(q.payload.date ?? ''),
+      morningLiters: morning, afternoonLiters: afternoon, eveningLiters: evening, totalLiters: total,
+      notes: q.payload.notes as string | undefined, animal, pending: true,
+    }
+  }), [queue, animals])
+
+  const allDailyRecords = useMemo(() => [...pendingDaily, ...dailyRecords], [pendingDaily, dailyRecords])
+  const allAnimalRecords = useMemo(() => [...pendingAnimal, ...animalRecords], [pendingAnimal, animalRecords])
+
   // ---- chart: last 7 days from daily records ----
   const today = new Date()
   const chartData = Array.from({ length: 7 }, (_, i) => {
@@ -76,23 +134,23 @@ export default function LeitePage() {
     d.setDate(today.getDate() - (6 - i))
     const dateStr = d.toISOString().split('T')[0]
     const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-    const rec = dailyRecords.find((r) => r.date.split('T')[0] === dateStr)
+    const rec = allDailyRecords.find((r) => r.date.split('T')[0] === dateStr)
     return { date: label, total: rec?.totalLiters ?? 0, morning: rec?.morningLiters ?? 0, afternoon: rec?.afternoonLiters ?? 0 }
   })
 
-  const hasDailyData = dailyRecords.length > 0
+  const hasDailyData = allDailyRecords.length > 0
   const todayStr = today.toISOString().split('T')[0]
-  const todayRecord = dailyRecords.find((r) => r.date.split('T')[0] === todayStr)
+  const todayRecord = allDailyRecords.find((r) => r.date.split('T')[0] === todayStr)
   const yesterdayStr = new Date(today.getTime() - 86400000).toISOString().split('T')[0]
-  const yesterdayRecord = dailyRecords.find((r) => r.date.split('T')[0] === yesterdayStr)
+  const yesterdayRecord = allDailyRecords.find((r) => r.date.split('T')[0] === yesterdayStr)
   const todayTotal = todayRecord?.totalLiters ?? 0
   const yesterdayTotal = yesterdayRecord?.totalLiters ?? 0
   const diff = yesterdayTotal > 0 ? ((todayTotal - yesterdayTotal) / yesterdayTotal * 100).toFixed(1) : null
-  const last30Total = dailyRecords.reduce((s, r) => s + r.totalLiters, 0)
+  const last30Total = allDailyRecords.reduce((s, r) => s + r.totalLiters, 0)
 
   // ---- top producers from animal records ----
   const cowMap: Record<string, { id: string; name: string; tag: string; breed: string; total: number; today: number; count: number }> = {}
-  animalRecords.forEach((r) => {
+  allAnimalRecords.forEach((r) => {
     const id = r.animalId
     if (!cowMap[id]) cowMap[id] = { id, name: r.animal?.name ?? 'Sem nome', tag: r.animal?.tag ?? '—', breed: r.animal?.breed ?? '—', total: 0, today: 0, count: 0 }
     cowMap[id].total += r.totalLiters
@@ -101,30 +159,43 @@ export default function LeitePage() {
   })
   const topCows = Object.values(cowMap).sort((a, b) => b.total - a.total).slice(0, 10)
 
-  function resetForms() { setDailyForm(EMPTY_DAILY); setAnimalForm(EMPTY_ANIMAL); setError(''); setSuccess(false) }
+  function resetForms() { setDailyForm(EMPTY_DAILY); setAnimalForm(EMPTY_ANIMAL); setError(''); setSuccess(false); setOfflineSuccess(false) }
 
   async function handleSaveDaily() {
     setError('')
     const total = (Number(dailyForm.morningLiters) || 0) + (Number(dailyForm.afternoonLiters) || 0) + (Number(dailyForm.eveningLiters) || 0)
     if (total <= 0) { setError('Informe ao menos um valor de produção.'); return }
     setSaving(true)
+    const payload = {
+      date: dailyForm.date,
+      morningLiters: Number(dailyForm.morningLiters) || 0,
+      afternoonLiters: Number(dailyForm.afternoonLiters) || 0,
+      eveningLiters: Number(dailyForm.eveningLiters) || 0,
+      notes: dailyForm.notes,
+    }
+
+    if (!navigator.onLine) {
+      enqueue({ kind: 'diario', endpoint: '/api/leite/diario', payload })
+      setSuccess(true); setOfflineSuccess(true); setSaving(false)
+      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
+      return
+    }
+
     try {
       const res = await fetch('/api/leite/diario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: dailyForm.date,
-          morningLiters: Number(dailyForm.morningLiters) || 0,
-          afternoonLiters: Number(dailyForm.afternoonLiters) || 0,
-          eveningLiters: Number(dailyForm.eveningLiters) || 0,
-          notes: dailyForm.notes,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Erro ao salvar.'); return }
       setSuccess(true)
       setTimeout(() => { setShowModal(false); resetForms(); loadDailyRecords() }, 1200)
-    } catch { setError('Erro de conexão.') } finally { setSaving(false) }
+    } catch {
+      enqueue({ kind: 'diario', endpoint: '/api/leite/diario', payload })
+      setSuccess(true); setOfflineSuccess(true)
+      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
+    } finally { setSaving(false) }
   }
 
   async function handleSaveAnimal() {
@@ -133,24 +204,37 @@ export default function LeitePage() {
     const total = (Number(animalForm.morningLiters) || 0) + (Number(animalForm.afternoonLiters) || 0) + (Number(animalForm.eveningLiters) || 0)
     if (total <= 0) { setError('Informe ao menos um valor de produção.'); return }
     setSaving(true)
+    const payload = {
+      animalId: animalForm.animalId,
+      date: animalForm.date,
+      morningLiters: Number(animalForm.morningLiters) || 0,
+      afternoonLiters: Number(animalForm.afternoonLiters) || 0,
+      eveningLiters: Number(animalForm.eveningLiters) || 0,
+      notes: animalForm.notes,
+    }
+
+    if (!navigator.onLine) {
+      enqueue({ kind: 'animal', endpoint: '/api/leite', payload })
+      setSuccess(true); setOfflineSuccess(true); setSaving(false)
+      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
+      return
+    }
+
     try {
       const res = await fetch('/api/leite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          animalId: animalForm.animalId,
-          date: animalForm.date,
-          morningLiters: Number(animalForm.morningLiters) || 0,
-          afternoonLiters: Number(animalForm.afternoonLiters) || 0,
-          eveningLiters: Number(animalForm.eveningLiters) || 0,
-          notes: animalForm.notes,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Erro ao salvar.'); return }
       setSuccess(true)
       setTimeout(() => { setShowModal(false); resetForms(); loadAnimalRecords() }, 1200)
-    } catch { setError('Erro de conexão.') } finally { setSaving(false) }
+    } catch {
+      enqueue({ kind: 'animal', endpoint: '/api/leite', payload })
+      setSuccess(true); setOfflineSuccess(true)
+      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
+    } finally { setSaving(false) }
   }
 
   const totalField = tab === 'diario'
@@ -159,6 +243,18 @@ export default function LeitePage() {
 
   return (
     <div className="space-y-6">
+      {/* Offline / pending banner */}
+      {(!online || queue.length > 0) && (
+        <div className="flex items-center gap-3 p-3.5 bg-alert-bg border border-alert-border rounded-xl text-alert-text text-sm font-semibold">
+          <span className="text-lg leading-none">{online ? '🔄' : '📡'}</span>
+          <span>
+            {online
+              ? `Sincronizando ${queue.length} lançamento${queue.length !== 1 ? 's' : ''} pendente${queue.length !== 1 ? 's' : ''}...`
+              : `Você está offline${queue.length > 0 ? ` — ${queue.length} lançamento${queue.length !== 1 ? 's' : ''} pendente${queue.length !== 1 ? 's' : ''}` : ''}. Os lançamentos serão enviados quando a conexão voltar.`}
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -194,10 +290,10 @@ export default function LeitePage() {
         <div className="stat-card">
           <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-xl">📊</div>
           <div>
-            <p className="text-2xl font-bold">{dailyRecords.length}</p>
+            <p className="text-2xl font-bold">{allDailyRecords.length}</p>
             <p className="text-xs text-muted-3">Dias Registrados (30d)</p>
-            {dailyRecords.length > 0 && (
-              <p className="text-xs text-muted-4">Média: {formatNumber(last30Total / dailyRecords.length)} L/dia</p>
+            {allDailyRecords.length > 0 && (
+              <p className="text-xs text-muted-4">Média: {formatNumber(last30Total / allDailyRecords.length)} L/dia</p>
             )}
           </div>
         </div>
@@ -244,11 +340,11 @@ export default function LeitePage() {
       <div className="card overflow-hidden">
         <div className="p-4 border-b border-paper flex items-center justify-between">
           <h2 className="section-title">Histórico de Produção Diária</h2>
-          <span className="text-xs text-muted-4">{dailyRecords.length} registros</span>
+          <span className="text-xs text-muted-4">{allDailyRecords.length} registros</span>
         </div>
         {loading ? (
           <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
-        ) : dailyRecords.length === 0 ? (
+        ) : allDailyRecords.length === 0 ? (
           <div className="p-10 text-center text-muted-4">
             <p className="text-3xl mb-2">📋</p>
             <p className="text-sm">Nenhum registro de produção diária.</p>
@@ -268,12 +364,14 @@ export default function LeitePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-paper">
-                {dailyRecords.map((r) => (
+                {allDailyRecords.map((r) => (
                   <tr key={r.id} className="hover:bg-paper">
                     <td className="px-4 py-3 font-medium text-ink">
-                      {r.date.split('T')[0] === todayStr ? (
-                        <span className="flex items-center gap-2">{formatDate(r.date)} <span className="badge bg-green-100 text-green-700 text-xs">Hoje</span></span>
-                      ) : formatDate(r.date)}
+                      <span className="flex items-center gap-2">
+                        {formatDate(r.date)}
+                        {r.date.split('T')[0] === todayStr && !r.pending && <span className="badge bg-green-100 text-green-700 text-xs">Hoje</span>}
+                        {r.pending && <span className="badge bg-alert-bg text-alert-text text-xs">🕓 Pendente de envio</span>}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-right text-muted-2 hidden sm:table-cell">{formatNumber(r.morningLiters)}</td>
                     <td className="px-4 py-3 text-right text-muted-2 hidden sm:table-cell">{formatNumber(r.afternoonLiters)}</td>
@@ -339,11 +437,23 @@ export default function LeitePage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
             {success ? (
               <div className="text-center py-10">
-                <div className="text-5xl mb-3">✅</div>
-                <p className="font-semibold text-green-700">Produção registrada com sucesso!</p>
+                <div className="text-5xl mb-3">{offlineSuccess ? '📡' : '✅'}</div>
+                {offlineSuccess ? (
+                  <>
+                    <p className="font-semibold text-alert-text">Salvo neste aparelho!</p>
+                    <p className="text-sm text-muted-3 mt-1">Será enviado ao servidor assim que a internet voltar.</p>
+                  </>
+                ) : (
+                  <p className="font-semibold text-green-700">Produção registrada com sucesso!</p>
+                )}
               </div>
             ) : (
               <>
+                {!online && (
+                  <div className="flex items-center gap-2 mb-4 p-2.5 bg-alert-bg border border-alert-border rounded-xl text-alert-text text-xs font-semibold">
+                    📡 Sem internet agora — o lançamento fica salvo neste aparelho e envia sozinho depois.
+                  </div>
+                )}
                 {/* Tab switcher */}
                 <div className="flex gap-1 bg-paper rounded-xl p-1 mb-5">
                   <button
