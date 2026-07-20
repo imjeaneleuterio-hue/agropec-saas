@@ -27,21 +27,21 @@ export default function IAPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">IA Veterinária</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="page-title">IA Veterinária</h1>
+        <p className="text-muted-3 text-sm mt-1">
           Diagnóstico de doenças e análise reprodutiva com inteligência artificial
         </p>
       </div>
       <TrialBanner module="ia" />
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-sand">
         <button
           onClick={() => setTab('saude')}
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             tab === 'saude'
               ? 'border-primary-600 text-primary-700'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-muted-3 hover:text-muted-1'
           }`}
         >
           🩺 Diagnóstico de Doenças
@@ -51,7 +51,7 @@ export default function IAPage() {
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             tab === 'reproducao'
               ? 'border-primary-600 text-primary-700'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              : 'border-transparent text-muted-3 hover:text-muted-1'
           }`}
         >
           🐄 Análise de Prenhez e Cio
@@ -142,7 +142,7 @@ function TabSaude() {
   }
 
   return (
-    <div className="flex flex-col h-[70vh] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-[70vh] card overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {mensagens.map((m, i) => (
           <div
@@ -150,7 +150,7 @@ function TabSaude() {
             className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 mt-1">
+              <div className="w-8 h-8 rounded-full bg-gradient-card flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 mt-1">
                 IA
               </div>
             )}
@@ -158,11 +158,11 @@ function TabSaude() {
               className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
                 m.role === 'user'
                   ? 'bg-primary-600 text-white rounded-tr-sm'
-                  : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                  : 'bg-paper text-ink rounded-tl-sm'
               }`}
             >
               {m.content || (
-                <span className="flex gap-1 items-center text-gray-400">
+                <span className="flex gap-1 items-center text-muted-4">
                   <span className="animate-bounce">●</span>
                   <span className="animate-bounce [animation-delay:0.1s]">●</span>
                   <span className="animate-bounce [animation-delay:0.2s]">●</span>
@@ -174,7 +174,7 @@ function TabSaude() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-gray-100 p-3 flex gap-2">
+      <div className="border-t border-paper p-3 flex gap-2">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -185,14 +185,14 @@ function TabSaude() {
             }
           }}
           placeholder="Descreva os sintomas do animal... (ex: vaca com febre, diarreia e não está comendo há 2 dias)"
-          className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="input-field flex-1 resize-none"
           rows={2}
           disabled={carregando}
         />
         <button
           onClick={enviar}
           disabled={carregando || !input.trim()}
-          className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+          className="btn-primary flex-shrink-0"
         >
           {carregando ? '...' : 'Enviar'}
         </button>
@@ -319,14 +319,14 @@ function TabReproducao() {
   return (
     <div className="space-y-4">
       {/* Seleção de animal */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-        <h2 className="font-semibold text-gray-800 mb-3">Selecionar Animal</h2>
+      <div className="card p-5">
+        <h2 className="section-title mb-3">Selecionar Animal</h2>
         <div className="flex gap-3 flex-wrap">
           <select
             value={animalId}
             onChange={(e) => { setAnimalId(e.target.value); setAnalise(''); setMensagens([]) }}
             disabled={carregandoAnimais}
-            className="flex-1 min-w-[200px] border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="input-field flex-1 min-w-[200px]"
           >
             <option value="">
               {carregandoAnimais ? 'Carregando animais...' : '-- Selecione uma fêmea --'}
@@ -340,39 +340,39 @@ function TabReproducao() {
           <button
             onClick={analisar}
             disabled={!animalId || carregando}
-            className="px-5 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary"
           >
             {carregando ? 'Analisando...' : '🔍 Analisar'}
           </button>
         </div>
 
         {animalSelecionado && (
-          <div className="mt-3 flex gap-4 text-xs text-gray-500 flex-wrap">
-            <span>Raça: <b className="text-gray-700">{animalSelecionado.breed}</b></span>
-            <span>Tipo: <b className="text-gray-700">Leiteira</b></span>
-            <span>Status: <b className="text-gray-700">{animalSelecionado.status}</b></span>
+          <div className="mt-3 flex gap-4 text-xs text-muted-3 flex-wrap">
+            <span>Raça: <b className="text-muted-1">{animalSelecionado.breed}</b></span>
+            <span>Tipo: <b className="text-muted-1">Leiteira</b></span>
+            <span>Status: <b className="text-muted-1">{animalSelecionado.status}</b></span>
           </div>
         )}
       </div>
 
       {/* Chat com análise + perguntas */}
       {(carregando || mensagens.length > 0) && (
-        <div className="flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" style={{ minHeight: '400px' }}>
+        <div className="flex flex-col card overflow-hidden" style={{ minHeight: '400px' }}>
           {/* Cabeçalho */}
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
-            <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-paper">
+            <div className="w-8 h-8 rounded-full bg-gradient-card flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               IA
             </div>
             <div>
-              <div className="font-semibold text-gray-800 text-sm">Análise Reprodutiva</div>
-              <div className="text-xs text-gray-400">Faça perguntas sobre o animal após a análise</div>
+              <div className="font-semibold text-ink text-sm">Análise Reprodutiva</div>
+              <div className="text-xs text-muted-4">Faça perguntas sobre o animal após a análise</div>
             </div>
           </div>
 
           {/* Mensagens */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: '50vh' }}>
             {carregando ? (
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
+              <div className="flex items-center gap-2 text-muted-4 text-sm">
                 <span className="animate-spin">⏳</span>
                 Analisando histórico reprodutivo do animal...
               </div>
@@ -383,7 +383,7 @@ function TabReproducao() {
                   className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {m.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-full bg-gradient-card flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0 mt-1">
                       IA
                     </div>
                   )}
@@ -391,11 +391,11 @@ function TabReproducao() {
                     className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed ${
                       m.role === 'user'
                         ? 'bg-primary-600 text-white rounded-tr-sm'
-                        : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                        : 'bg-paper text-ink rounded-tl-sm'
                     }`}
                   >
                     {m.content || (
-                      <span className="flex gap-1 items-center text-gray-400">
+                      <span className="flex gap-1 items-center text-muted-4">
                         <span className="animate-bounce">●</span>
                         <span className="animate-bounce [animation-delay:0.1s]">●</span>
                         <span className="animate-bounce [animation-delay:0.2s]">●</span>
@@ -415,7 +415,7 @@ function TabReproducao() {
 
           {/* Input de perguntas */}
           {!carregando && analise && (
-            <div className="border-t border-gray-100 p-3 flex gap-2">
+            <div className="border-t border-paper p-3 flex gap-2">
               <textarea
                 value={inputChat}
                 onChange={(e) => setInputChat(e.target.value)}
@@ -426,14 +426,14 @@ function TabReproducao() {
                   }
                 }}
                 placeholder="Faça uma pergunta sobre este animal... (ex: quando devo fazer o exame de prenhez?)"
-                className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-field flex-1 resize-none"
                 rows={2}
                 disabled={carregandoChat}
               />
               <button
                 onClick={enviarPergunta}
                 disabled={carregandoChat || !inputChat.trim()}
-                className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                className="btn-primary flex-shrink-0"
               >
                 {carregandoChat ? '...' : 'Enviar'}
               </button>
@@ -445,8 +445,8 @@ function TabReproducao() {
       {!animalId && mensagens.length === 0 && (
         <div className="bg-gradient-to-br from-primary-50 to-white rounded-2xl border border-primary-100 p-8 text-center">
           <div className="text-4xl mb-3">🐄</div>
-          <h3 className="font-semibold text-gray-700 mb-2">Análise de Prenhez e Cio</h3>
-          <p className="text-gray-400 text-sm max-w-md mx-auto">
+          <h3 className="font-semibold text-muted-1 mb-2">Análise de Prenhez e Cio</h3>
+          <p className="text-muted-4 text-sm max-w-md mx-auto">
             Selecione uma fêmea do rebanho. A IA analisará o histórico reprodutivo, indicará
             o status atual e a previsão do próximo cio. Depois, tire suas dúvidas diretamente no chat.
           </p>

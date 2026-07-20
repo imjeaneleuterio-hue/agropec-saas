@@ -163,7 +163,7 @@ export default function LeitePage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Controle Leiteiro</h1>
-          <p className="text-gray-500 text-sm">Gestão da produção de leite do rebanho</p>
+          <p className="text-muted-3 text-sm">Gestão da produção de leite do rebanho</p>
         </div>
         <button onClick={() => { resetForms(); setShowModal(true) }} className="btn-primary">
           + Registrar Produção
@@ -176,7 +176,7 @@ export default function LeitePage() {
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-xl">🥛</div>
           <div>
             <p className="text-2xl font-bold">{formatNumber(todayTotal)} L</p>
-            <p className="text-xs text-gray-500">Produção Hoje (rebanho)</p>
+            <p className="text-xs text-muted-3">Produção Hoje (rebanho)</p>
             {diff !== null && (
               <p className={`text-xs font-medium ${Number(diff) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {Number(diff) >= 0 ? '▲' : '▼'} {Math.abs(Number(diff))}% vs ontem
@@ -188,16 +188,16 @@ export default function LeitePage() {
           <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-xl">📅</div>
           <div>
             <p className="text-2xl font-bold">{formatNumber(last30Total)} L</p>
-            <p className="text-xs text-gray-500">Acumulado (30 dias)</p>
+            <p className="text-xs text-muted-3">Acumulado (30 dias)</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-xl">📊</div>
           <div>
             <p className="text-2xl font-bold">{dailyRecords.length}</p>
-            <p className="text-xs text-gray-500">Dias Registrados (30d)</p>
+            <p className="text-xs text-muted-3">Dias Registrados (30d)</p>
             {dailyRecords.length > 0 && (
-              <p className="text-xs text-gray-400">Média: {formatNumber(last30Total / dailyRecords.length)} L/dia</p>
+              <p className="text-xs text-muted-4">Média: {formatNumber(last30Total / dailyRecords.length)} L/dia</p>
             )}
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function LeitePage() {
           <div className="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center text-xl">🐄</div>
           <div>
             <p className="text-2xl font-bold">{Object.keys(cowMap).length}</p>
-            <p className="text-xs text-gray-500">Animais c/ Registro</p>
+            <p className="text-xs text-muted-3">Animais c/ Registro</p>
           </div>
         </div>
       </div>
@@ -214,9 +214,9 @@ export default function LeitePage() {
       <div className="card p-5">
         <h2 className="section-title mb-4">Produção Diária do Rebanho — Últimos 7 dias</h2>
         {loading ? (
-          <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">Carregando...</div>
+          <div className="h-[220px] flex items-center justify-center text-muted-4 text-sm">Carregando...</div>
         ) : !hasDailyData ? (
-          <div className="h-[220px] flex flex-col items-center justify-center text-gray-400">
+          <div className="h-[220px] flex flex-col items-center justify-center text-muted-4">
             <p className="text-3xl mb-2">🥛</p>
             <p className="text-sm">Nenhuma produção registrada ainda.</p>
             <p className="text-xs mt-1">Clique em "Registrar Produção" para começar.</p>
@@ -230,10 +230,10 @@ export default function LeitePage() {
                   <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-              <XAxis dataKey="date" tick={{ fontSize: 12 }}/>
-              <YAxis tick={{ fontSize: 12 }}/>
-              <Tooltip formatter={(v: number, n: string) => [`${formatNumber(v)} L`, n === 'total' ? 'Total' : n === 'morning' ? 'Manhã' : 'Tarde']}/>
+              <CartesianGrid strokeDasharray="3 3" stroke="#efe9db"/>
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#9a9280' }}/>
+              <YAxis tick={{ fontSize: 12, fill: '#9a9280' }}/>
+              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #efe9db' }} formatter={(v: number, n: string) => [`${formatNumber(v)} L`, n === 'total' ? 'Total' : n === 'morning' ? 'Manhã' : 'Tarde']}/>
               <Area type="monotone" dataKey="total" stroke="#16a34a" fill="url(#totalGrad)" strokeWidth={2} name="total"/>
             </AreaChart>
           </ResponsiveContainer>
@@ -242,14 +242,14 @@ export default function LeitePage() {
 
       {/* Daily production history */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-4 border-b border-paper flex items-center justify-between">
           <h2 className="section-title">Histórico de Produção Diária</h2>
-          <span className="text-xs text-gray-400">{dailyRecords.length} registros</span>
+          <span className="text-xs text-muted-4">{dailyRecords.length} registros</span>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
         ) : dailyRecords.length === 0 ? (
-          <div className="p-10 text-center text-gray-400">
+          <div className="p-10 text-center text-muted-4">
             <p className="text-3xl mb-2">📋</p>
             <p className="text-sm">Nenhum registro de produção diária.</p>
             <p className="text-xs mt-1">Registre a produção total do rebanho a cada dia.</p>
@@ -258,28 +258,28 @@ export default function LeitePage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Data</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium hidden sm:table-cell">Manhã (L)</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium hidden sm:table-cell">Tarde (L)</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium hidden md:table-cell">Noite (L)</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Total (L)</th>
-                  <th className="px-4 py-2.5 text-gray-600 font-medium hidden lg:table-cell">Obs.</th>
+                <tr className="bg-paper">
+                  <th className="text-left px-4 py-2.5 text-muted-2 font-medium">Data</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium hidden sm:table-cell">Manhã (L)</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium hidden sm:table-cell">Tarde (L)</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium hidden md:table-cell">Noite (L)</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Total (L)</th>
+                  <th className="px-4 py-2.5 text-muted-2 font-medium hidden lg:table-cell">Obs.</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {dailyRecords.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                  <tr key={r.id} className="hover:bg-paper">
+                    <td className="px-4 py-3 font-medium text-ink">
                       {r.date.split('T')[0] === todayStr ? (
                         <span className="flex items-center gap-2">{formatDate(r.date)} <span className="badge bg-green-100 text-green-700 text-xs">Hoje</span></span>
                       ) : formatDate(r.date)}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">{formatNumber(r.morningLiters)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">{formatNumber(r.afternoonLiters)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600 hidden md:table-cell">{formatNumber(r.eveningLiters)}</td>
+                    <td className="px-4 py-3 text-right text-muted-2 hidden sm:table-cell">{formatNumber(r.morningLiters)}</td>
+                    <td className="px-4 py-3 text-right text-muted-2 hidden sm:table-cell">{formatNumber(r.afternoonLiters)}</td>
+                    <td className="px-4 py-3 text-right text-muted-2 hidden md:table-cell">{formatNumber(r.eveningLiters)}</td>
                     <td className="px-4 py-3 text-right font-bold text-primary-700">{formatNumber(r.totalLiters)} L</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell truncate max-w-[160px]">{r.notes ?? '—'}</td>
+                    <td className="px-4 py-3 text-muted-4 text-xs hidden lg:table-cell truncate max-w-[160px]">{r.notes ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -291,34 +291,34 @@ export default function LeitePage() {
       {/* Top Producers (from animal records) */}
       {topCows.length > 0 && (
         <div className="card overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-4 border-b border-paper">
             <h2 className="section-title">Maiores Produtoras — Por Animal (30 dias)</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Animal</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Hoje (L)</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium hidden sm:table-cell">Total 30d (L)</th>
+                <tr className="bg-paper">
+                  <th className="text-left px-4 py-2.5 text-muted-2 font-medium">Animal</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Hoje (L)</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium hidden sm:table-cell">Total 30d (L)</th>
                   <th className="px-4 py-2.5"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {topCows.map((cow, i) => (
-                  <tr key={cow.id} className="hover:bg-gray-50">
+                  <tr key={cow.id} className="hover:bg-paper">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold text-gray-400 w-5">#{i + 1}</span>
+                        <span className="text-xs font-bold text-muted-4 w-5">#{i + 1}</span>
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">🐄</div>
                         <div>
-                          <p className="font-medium text-gray-900">{cow.name}</p>
-                          <p className="text-xs text-gray-500">{cow.breed} • #{cow.tag}</p>
+                          <p className="font-medium text-ink">{cow.name}</p>
+                          <p className="text-xs text-muted-3">{cow.breed} • #{cow.tag}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-primary-700">{formatNumber(cow.today)} L</td>
-                    <td className="px-4 py-3 text-right text-gray-600 hidden sm:table-cell">{formatNumber(cow.total)} L</td>
+                    <td className="px-4 py-3 text-right text-muted-2 hidden sm:table-cell">{formatNumber(cow.total)} L</td>
                     <td className="px-4 py-3 text-right">
                       <button className="btn-ghost text-xs px-2 py-1"
                         onClick={() => { resetForms(); setTab('animal'); setAnimalForm((f) => ({ ...f, animalId: cow.id })); setShowModal(true) }}>
@@ -345,15 +345,15 @@ export default function LeitePage() {
             ) : (
               <>
                 {/* Tab switcher */}
-                <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
+                <div className="flex gap-1 bg-paper rounded-xl p-1 mb-5">
                   <button
                     onClick={() => { setTab('diario'); setError('') }}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-600 transition-all ${tab === 'diario' ? 'bg-white shadow text-primary-700 font-semibold' : 'text-gray-500'}`}>
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm transition-all ${tab === 'diario' ? 'bg-white shadow text-primary-700 font-semibold' : 'text-muted-3 font-medium'}`}>
                     🥛 Total do Rebanho
                   </button>
                   <button
                     onClick={() => { setTab('animal'); setError('') }}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-600 transition-all ${tab === 'animal' ? 'bg-white shadow text-primary-700 font-semibold' : 'text-gray-500'}`}>
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm transition-all ${tab === 'animal' ? 'bg-white shadow text-primary-700 font-semibold' : 'text-muted-3 font-medium'}`}>
                     🐄 Por Animal
                   </button>
                 </div>
@@ -361,7 +361,7 @@ export default function LeitePage() {
                 {tab === 'diario' ? (
                   <>
                     <h3 className="section-title mb-1">Produção Total do Dia</h3>
-                    <p className="text-xs text-gray-500 mb-4">Informe o total tirado de <strong>todas as vacas</strong> no dia.</p>
+                    <p className="text-xs text-muted-3 mb-4">Informe o total tirado de <strong>todas as vacas</strong> no dia.</p>
                     <div className="space-y-4">
                       <div>
                         <label className="label">Data *</label>
@@ -386,7 +386,7 @@ export default function LeitePage() {
                         </div>
                       </div>
                       <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 text-center">
-                        <p className="text-xs text-gray-500 mb-1">Total do dia</p>
+                        <p className="text-xs text-muted-3 mb-1">Total do dia</p>
                         <p className="text-3xl font-bold text-primary-700">{formatNumber(totalField)} L</p>
                       </div>
                       <div>
@@ -399,7 +399,7 @@ export default function LeitePage() {
                 ) : (
                   <>
                     <h3 className="section-title mb-1">Produção por Animal</h3>
-                    <p className="text-xs text-gray-500 mb-4">Registre a produção individual de uma vaca.</p>
+                    <p className="text-xs text-muted-3 mb-4">Registre a produção individual de uma vaca.</p>
                     <div className="space-y-4">
                       <div>
                         <label className="label">Animal *</label>
@@ -433,7 +433,7 @@ export default function LeitePage() {
                         </div>
                       </div>
                       <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 text-center">
-                        <p className="text-xs text-gray-500 mb-1">Total do animal</p>
+                        <p className="text-xs text-muted-3 mb-1">Total do animal</p>
                         <p className="text-3xl font-bold text-primary-700">{formatNumber(totalField)} L</p>
                       </div>
                       <div>

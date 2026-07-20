@@ -196,28 +196,28 @@ export function VoiceButton() {
       <button
         onClick={() => isLocked ? triggerTrialExhausted('ia_voz') : setAberto(true)}
         title={isLocked ? 'Comando de voz — disponível no plano Premium' : 'Registrar por voz'}
-        className={`fixed bottom-6 right-6 z-40 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition-all hover:scale-105 active:scale-95 ${
-          isLocked ? 'bg-gray-400 hover:bg-gray-500' : 'bg-primary-600 hover:bg-primary-700'
+        className={`fixed bottom-6 right-6 z-40 w-14 h-14 text-white rounded-full shadow-card-lg flex items-center justify-center text-2xl transition-all hover:scale-105 active:scale-95 ${
+          isLocked ? 'bg-muted-4 hover:bg-muted-3' : 'bg-gradient-card hover:opacity-90'
         }`}
       >
         {isLocked ? '🔒' : '🎤'}
       </button>
       {isLocked && (
-        <div className="fixed bottom-[5.5rem] right-4 z-40 bg-gray-900 text-white text-xs rounded-xl px-3 py-2 max-w-[180px] text-center shadow-lg pointer-events-none">
+        <div className="fixed bottom-[5.5rem] right-4 z-40 bg-ink text-white text-xs rounded-xl px-3 py-2 max-w-[180px] text-center shadow-lg pointer-events-none">
           Assine o Premium para usar comandos de voz
         </div>
       )}
 
       {aberto && (
         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+          <div className="bg-white rounded-[20px] w-full max-w-md shadow-card-lg overflow-hidden">
 
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-paper">
               <div>
-                <h3 className="font-bold text-gray-900">Registrar por Voz</h3>
-                <p className="text-xs text-gray-400 mt-0.5">Fale e a IA registra automaticamente</p>
+                <h3 className="font-bold text-ink">Registrar por Voz</h3>
+                <p className="text-xs text-muted-4 mt-0.5">Fale e a IA registra automaticamente</p>
               </div>
-              <button onClick={fechar} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              <button onClick={fechar} className="text-muted-4 hover:text-muted-2 text-xl">✕</button>
             </div>
 
             <div className="p-5 space-y-4">
@@ -225,9 +225,9 @@ export function VoiceButton() {
               {/* Idle: exemplos */}
               {estado === 'idle' && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Exemplos</p>
+                  <p className="text-xs font-semibold text-muted-3 uppercase tracking-wide">Exemplos</p>
                   {EXEMPLOS.map((ex) => (
-                    <p key={ex} className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-1.5">{ex}</p>
+                    <p key={ex} className="text-sm text-muted-2 bg-paper rounded-lg px-3 py-1.5">{ex}</p>
                   ))}
                 </div>
               )}
@@ -243,7 +243,7 @@ export function VoiceButton() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-red-600">● Gravando</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{segundos}s — fale naturalmente</p>
+                    <p className="text-xs text-muted-4 mt-0.5">{segundos}s — fale naturalmente</p>
                   </div>
                 </div>
               )}
@@ -252,19 +252,19 @@ export function VoiceButton() {
               {estado === 'transcrevendo' && (
                 <div className="text-center space-y-3 py-4">
                   <div className="text-3xl animate-spin inline-block">⏳</div>
-                  <p className="text-sm font-medium text-gray-700">Transcrevendo e interpretando...</p>
+                  <p className="text-sm font-medium text-muted-1">Transcrevendo e interpretando...</p>
                 </div>
               )}
 
               {/* Confirmação */}
               {estado === 'confirmando' && interpretacao && (
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">O que você disse</p>
-                  <div className="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600 italic">
+                  <p className="text-xs font-semibold text-muted-3 uppercase tracking-wide">O que você disse</p>
+                  <div className="bg-paper rounded-xl px-4 py-3 text-sm text-muted-2 italic">
                     "{transcricao}"
                   </div>
 
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">O que a IA entendeu</p>
+                  <p className="text-xs font-semibold text-muted-3 uppercase tracking-wide">O que a IA entendeu</p>
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-blue-800">{TIPO_LABELS[interpretacao.tipo] ?? interpretacao.tipo}</span>
@@ -287,7 +287,7 @@ export function VoiceButton() {
                   </div>
 
                   {!SEM_ANIMAL.includes(interpretacao.tipo) && !interpretacao.animal && (
-                    <p className="text-xs text-gray-400">Verifique o número do brinco e tente novamente.</p>
+                    <p className="text-xs text-muted-4">Verifique o número do brinco e tente novamente.</p>
                   )}
                 </div>
               )}
@@ -296,7 +296,7 @@ export function VoiceButton() {
               {estado === 'registrando' && (
                 <div className="text-center space-y-3 py-4">
                   <div className="text-3xl animate-spin inline-block">⏳</div>
-                  <p className="text-sm font-medium text-gray-700">Salvando registro...</p>
+                  <p className="text-sm font-medium text-muted-1">Salvando registro...</p>
                 </div>
               )}
 
@@ -310,7 +310,7 @@ export function VoiceButton() {
                       <p className="text-sm text-green-700 mt-0.5">{confirmacao}</p>
                     </div>
                   </div>
-                  {transcricao && <p className="text-xs text-gray-400 italic">"{transcricao}"</p>}
+                  {transcricao && <p className="text-xs text-muted-4 italic">"{transcricao}"</p>}
                 </div>
               )}
 
@@ -330,12 +330,12 @@ export function VoiceButton() {
             {/* Footer */}
             <div className="px-5 pb-5 space-y-2">
               {estado === 'idle' && (
-                <button onClick={iniciarGravacao} className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+                <button onClick={iniciarGravacao} className="btn-primary w-full">
                   🎤 Iniciar Gravação
                 </button>
               )}
               {estado === 'gravando' && (
-                <button onClick={pararGravacao} className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+                <button onClick={pararGravacao} className="btn-danger w-full">
                   ⏹ Parar e Enviar
                 </button>
               )}
@@ -344,21 +344,21 @@ export function VoiceButton() {
                   <button
                     onClick={confirmarRegistro}
                     disabled={!interpretacao || (!SEM_ANIMAL.includes(interpretacao.tipo) && !interpretacao.animal)}
-                    className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="btn-primary flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     ✓ Confirmar Registro
                   </button>
-                  <button onClick={novoRegistro} className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-sm">
+                  <button onClick={novoRegistro} className="btn-secondary flex-1">
                     🎤 Tentar Novamente
                   </button>
                 </div>
               )}
               {(estado === 'sucesso' || estado === 'erro') && (
                 <div className="flex gap-3">
-                  <button onClick={novoRegistro} className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors text-sm">
+                  <button onClick={novoRegistro} className="btn-primary flex-1">
                     🎤 Novo Registro
                   </button>
-                  <button onClick={fechar} className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors text-sm">
+                  <button onClick={fechar} className="btn-secondary flex-1">
                     Fechar
                   </button>
                 </div>

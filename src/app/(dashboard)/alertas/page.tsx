@@ -8,7 +8,7 @@ const PRIORITY_CONFIG = {
   CRITICAL: { label: 'Crítico', color: 'border-red-300 bg-red-50', badge: 'bg-red-100 text-red-700', borderLeft: 'border-l-red-400', dot: 'bg-red-500', icon: '🚨' },
   HIGH:     { label: 'Alto',    color: 'border-orange-300 bg-orange-50', badge: 'bg-orange-100 text-orange-700', borderLeft: 'border-l-orange-400', dot: 'bg-orange-500', icon: '⚠️' },
   MEDIUM:   { label: 'Médio',   color: 'border-yellow-300 bg-yellow-50', badge: 'bg-yellow-100 text-yellow-700', borderLeft: 'border-l-yellow-400', dot: 'bg-yellow-400', icon: '📋' },
-  LOW:      { label: 'Baixo',   color: 'border-gray-200 bg-gray-50',    badge: 'bg-gray-100 text-gray-600',    borderLeft: 'border-l-gray-300',   dot: 'bg-gray-400',   icon: 'ℹ️' },
+  LOW:      { label: 'Baixo',   color: 'border-sand bg-paper',    badge: 'bg-paper text-muted-2',    borderLeft: 'border-l-sand',   dot: 'bg-muted-4',   icon: 'ℹ️' },
 } as const
 
 const TYPE_LABELS: Record<string, string> = {
@@ -58,7 +58,7 @@ export default function AlertasPage() {
     <div className="space-y-6">
       <div>
         <h1 className="page-title">Alertas e Notificações</h1>
-        <p className="text-gray-500 text-sm">
+        <p className="text-muted-3 text-sm">
           {loading ? 'Carregando...' : (
             <>
               {alerts.length} alerta{alerts.length !== 1 ? 's' : ''}
@@ -82,14 +82,14 @@ export default function AlertasPage() {
                 'p-3 rounded-xl border-2 text-left transition-all',
                 filterPriority === priority
                   ? config.color + ' border-current'
-                  : 'bg-white border-gray-100 hover:border-gray-200'
+                  : 'bg-white border-paper hover:border-sand'
               )}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span>{config.icon}</span>
-                <span className="text-xs text-gray-600">{config.label}</span>
+                <span className="text-xs text-muted-2">{config.label}</span>
               </div>
-              <p className="text-xl font-bold text-gray-900">{count}</p>
+              <p className="text-xl font-bold text-ink">{count}</p>
             </button>
           )
         })}
@@ -111,14 +111,14 @@ export default function AlertasPage() {
 
       {/* Lista */}
       {loading ? (
-        <div className="card p-12 text-center text-gray-400 text-sm">Carregando alertas...</div>
+        <div className="card p-12 text-center text-muted-4 text-sm">Carregando alertas...</div>
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-4xl mb-3">✅</p>
-          <p className="text-gray-500 font-medium">
+          <p className="text-muted-3 font-medium">
             {alerts.length === 0 ? 'Nenhum alerta no momento.' : 'Nenhum alerta com esses filtros.'}
           </p>
-          <p className="text-gray-400 text-sm mt-1">Os alertas são gerados automaticamente pelo sistema.</p>
+          <p className="text-muted-4 text-sm mt-1">Os alertas são gerados automaticamente pelo sistema.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -134,16 +134,16 @@ export default function AlertasPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className={`badge text-xs ${config.badge}`}>{config.label}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      <span className="text-xs text-muted-3 bg-paper px-2 py-0.5 rounded-full">
                         {TYPE_LABELS[alert.type] ?? alert.type}
                       </span>
                     </div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-ink">
                       {alert.title.startsWith('Previsão de Cio') ? '❤️ ' : ''}
                       {alert.title}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 flex-wrap">
+                    <p className="text-sm text-muted-2 mt-1">{alert.description}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-4 flex-wrap">
                       {alert.dueDate && (() => {
                         const days = daysFromToday(alert.dueDate)
                         const urgency = days < 0
@@ -151,7 +151,7 @@ export default function AlertasPage() {
                           : days === 0 ? 'vence hoje!'
                           : days === 1 ? 'vence amanhã'
                           : `em ${days} dias`
-                        const color = days < 0 ? 'text-red-600 font-semibold' : days <= 2 ? 'text-orange-600 font-semibold' : 'text-gray-600'
+                        const color = days < 0 ? 'text-red-600 font-semibold' : days <= 2 ? 'text-orange-600 font-semibold' : 'text-muted-2'
                         return (
                           <span>
                             📅 {formatDate(alert.dueDate)}{' '}
@@ -164,7 +164,7 @@ export default function AlertasPage() {
                   </div>
                   {confirmId === alert.id ? (
                     <div className="flex-shrink-0 flex items-center gap-2">
-                      <span className="text-xs text-gray-600">Apagar?</span>
+                      <span className="text-xs text-muted-2">Apagar?</span>
                       <button
                         onClick={() => apagar(alert.id)}
                         className="px-2.5 py-1 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -173,7 +173,7 @@ export default function AlertasPage() {
                       </button>
                       <button
                         onClick={() => setConfirmId(null)}
-                        className="px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="px-2.5 py-1 text-xs font-semibold bg-paper text-muted-1 rounded-lg hover:bg-sand transition-colors"
                       >
                         Não
                       </button>
@@ -183,7 +183,7 @@ export default function AlertasPage() {
                       onClick={() => setConfirmId(alert.id)}
                       disabled={deletingId === alert.id}
                       title="Apagar alerta"
-                      className="flex-shrink-0 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      className="flex-shrink-0 p-2 text-muted-4 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                     >
                       {deletingId === alert.id ? '...' : '🗑️'}
                     </button>

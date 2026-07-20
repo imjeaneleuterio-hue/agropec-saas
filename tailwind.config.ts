@@ -32,15 +32,17 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-manrope)', 'Manrope', 'system-ui', 'sans-serif'],
+        display: ['var(--font-serif)', 'Instrument Serif', 'serif'],
       },
       backgroundImage: {
-        'gradient-agro': 'linear-gradient(135deg, #14532d 0%, #166534 50%, #16a34a 100%)',
-        'gradient-card': 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+        'gradient-agro': 'linear-gradient(120deg, #14532d 0%, #1a6b3a 60%, #166534 100%)',
+        'gradient-card': 'linear-gradient(140deg, #4ade80 0%, #16a34a 100%)',
+        'gradient-sidebar': 'linear-gradient(180deg, #14532d 0%, #0f3d21 100%)',
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
-        'card-lg': '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
+        'card': '0 2px 10px rgba(20,30,15,0.04)',
+        'card-lg': '0 10px 28px rgba(20,30,15,0.08)',
       },
     },
   },

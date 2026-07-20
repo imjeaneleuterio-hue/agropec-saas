@@ -138,7 +138,7 @@ export default function FinanceiroPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Financeiro Rural</h1>
-          <p className="text-gray-500 text-sm">Receitas, despesas e fluxo de caixa</p>
+          <p className="text-muted-3 text-sm">Receitas, despesas e fluxo de caixa</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => openModal('EXPENSE')} className="btn-secondary">− Despesa</button>
@@ -166,7 +166,7 @@ export default function FinanceiroPage() {
           <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-xl', balance >= 0 ? 'bg-blue-100' : 'bg-red-100')}>💰</div>
           <div>
             <p className={cn('text-2xl font-bold', balance >= 0 ? 'text-blue-700' : 'text-red-700')}>{formatCurrency(balance)}</p>
-            <p className="text-xs text-gray-500">Saldo do Mês</p>
+            <p className="text-xs text-muted-3">Saldo do Mês</p>
           </div>
         </div>
         <div className="stat-card bg-yellow-50 border border-yellow-100">
@@ -182,19 +182,19 @@ export default function FinanceiroPage() {
         <div className="card p-5 lg:col-span-2">
           <h2 className="section-title mb-4">Receitas vs Despesas — Últimos 3 meses</h2>
           {!hasChartData ? (
-            <div className="h-[220px] flex flex-col items-center justify-center text-gray-400">
+            <div className="h-[220px] flex flex-col items-center justify-center text-muted-4">
               <p className="text-3xl mb-2">📊</p>
               <p className="text-sm">Nenhum lançamento registrado ainda.</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                <XAxis dataKey="mes" tick={{ fontSize: 12 }}/>
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}/>
-                <Tooltip formatter={(v: number, n: string) => [formatCurrency(v), n === 'receita' ? 'Receita' : 'Despesa']} contentStyle={{ borderRadius: 8 }}/>
+                <CartesianGrid strokeDasharray="3 3" stroke="#efe9db"/>
+                <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#9a9280' }}/>
+                <YAxis tick={{ fontSize: 12, fill: '#9a9280' }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}/>
+                <Tooltip formatter={(v: number, n: string) => [formatCurrency(v), n === 'receita' ? 'Receita' : 'Despesa']} contentStyle={{ borderRadius: 12, border: '1px solid #efe9db' }}/>
                 <Bar dataKey="receita" fill="#16a34a" radius={[4,4,0,0]} name="receita"/>
-                <Bar dataKey="despesa" fill="#fca5a5" radius={[4,4,0,0]} name="despesa"/>
+                <Bar dataKey="despesa" fill="#92400e" radius={[4,4,0,0]} name="despesa"/>
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -203,7 +203,7 @@ export default function FinanceiroPage() {
         <div className="card p-5">
           <h2 className="section-title mb-4">Despesas por Categoria</h2>
           {pieData.length === 0 ? (
-            <div className="h-[160px] flex flex-col items-center justify-center text-gray-400">
+            <div className="h-[160px] flex flex-col items-center justify-center text-muted-4">
               <p className="text-2xl mb-2">📉</p>
               <p className="text-sm text-center">Nenhuma despesa registrada.</p>
             </div>
@@ -222,9 +222,9 @@ export default function FinanceiroPage() {
                   <div key={c.name} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.color }}/>
-                      <span className="text-gray-600 truncate max-w-[120px]">{c.name}</span>
+                      <span className="text-muted-2 truncate max-w-[120px]">{c.name}</span>
                     </div>
-                    <span className="font-medium text-gray-800">{formatCurrency(c.value)}</span>
+                    <span className="font-medium text-ink">{formatCurrency(c.value)}</span>
                   </div>
                 ))}
               </div>
@@ -235,7 +235,7 @@ export default function FinanceiroPage() {
 
       {/* Transactions */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-3 items-center justify-between">
+        <div className="p-4 border-b border-paper flex flex-wrap gap-3 items-center justify-between">
           <h2 className="section-title">Lançamentos</h2>
           <div className="flex gap-2">
             <select className="input-field w-auto text-sm" value={filterType} onChange={(e) => setFilterType(e.target.value as typeof filterType)}>
@@ -252,24 +252,24 @@ export default function FinanceiroPage() {
           </div>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-gray-400">
+          <div className="p-12 text-center text-muted-4">
             <p className="text-3xl mb-2">💰</p>
             <p className="text-sm font-medium">Nenhum lançamento encontrado.</p>
             <p className="text-xs mt-1">Clique em "+ Receita" ou "− Despesa" para adicionar.</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-paper">
             {filtered.map((record) => (
-              <div key={record.id} className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50">
+              <div key={record.id} className="flex items-center gap-4 px-4 py-3 hover:bg-paper">
                 <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0',
                   record.type === 'INCOME' ? 'bg-green-100' : 'bg-red-100')}>
                   {record.type === 'INCOME' ? '📈' : '📉'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{record.description}</p>
-                  <p className="text-xs text-gray-500">{record.category} · {formatDate(record.date)}</p>
+                  <p className="font-medium text-ink truncate">{record.description}</p>
+                  <p className="text-xs text-muted-3">{record.category} · {formatDate(record.date)}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className={cn('font-bold', record.type === 'INCOME' ? 'text-green-700' : 'text-red-600')}>
@@ -281,20 +281,20 @@ export default function FinanceiroPage() {
                 </div>
                 {confirmDeleteId === record.id ? (
                   <div className="flex-shrink-0 flex items-center gap-2 ml-2">
-                    <span className="text-xs text-gray-600">Apagar?</span>
+                    <span className="text-xs text-muted-2">Apagar?</span>
                     <button onClick={() => handleDelete(record.id)}
                       className="px-2.5 py-1 text-xs font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700">
                       Sim
                     </button>
                     <button onClick={() => setConfirmDeleteId(null)}
-                      className="px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                      className="px-2.5 py-1 text-xs font-semibold bg-paper text-muted-1 rounded-lg hover:bg-sand">
                       Não
                     </button>
                   </div>
                 ) : (
                   <button onClick={() => setConfirmDeleteId(record.id)} disabled={deletingId === record.id}
                     title="Apagar lançamento"
-                    className="flex-shrink-0 ml-2 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
+                    className="flex-shrink-0 ml-2 p-2 text-muted-4 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
                     {deletingId === record.id ? '...' : '🗑️'}
                   </button>
                 )}
@@ -311,7 +311,7 @@ export default function FinanceiroPage() {
             <h3 className="section-title mb-1">
               {modalType === 'INCOME' ? '📈 Nova Receita' : '📉 Nova Despesa'}
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-muted-3 mb-4">
               {modalType === 'INCOME' ? 'Registre uma entrada financeira' : 'Registre uma saída financeira'}
             </p>
             {saveSuccess ? (

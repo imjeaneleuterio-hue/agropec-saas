@@ -155,7 +155,7 @@ export default function ConfiguracoesPage() {
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="page-title">Configurações</h1>
-        <p className="text-gray-500 text-sm">Gerencie sua conta e preferências</p>
+        <p className="text-muted-3 text-sm">Gerencie sua conta e preferências</p>
       </div>
 
       {saved && (
@@ -169,12 +169,12 @@ export default function ConfiguracoesPage() {
         </div>
       )}
 
-      <div className="border-b border-gray-200">
+      <div className="border-b border-sand">
         <div className="flex gap-0 flex-wrap">
           {['Meu Perfil', 'Minha Fazenda', 'Plano', 'Segurança', 'Notificações'].map((tab, i) => (
             <button key={tab} onClick={() => { setActiveTab(i); setError('') }}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === i ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === i ? 'border-primary-600 text-primary-700' : 'border-transparent text-muted-3 hover:text-muted-1'
               }`}>
               {tab}
             </button>
@@ -190,9 +190,9 @@ export default function ConfiguracoesPage() {
               {initials}
             </div>
             <div>
-              <p className="font-medium text-gray-900">{user?.name ?? '—'}</p>
-              <p className="text-sm text-gray-500">{user?.email}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{LABELS.role[user?.role as keyof typeof LABELS.role] ?? user?.role}</p>
+              <p className="font-medium text-ink">{user?.name ?? '—'}</p>
+              <p className="text-sm text-muted-3">{user?.email}</p>
+              <p className="text-xs text-muted-4 mt-0.5">{LABELS.role[user?.role as keyof typeof LABELS.role] ?? user?.role}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -203,7 +203,7 @@ export default function ConfiguracoesPage() {
             </div>
             <div className="col-span-2 sm:col-span-1">
               <label className="label">E-mail</label>
-              <input type="email" className="input-field bg-gray-50" value={user?.email ?? ''} disabled />
+              <input type="email" className="input-field bg-paper" value={user?.email ?? ''} disabled />
             </div>
             <div>
               <label className="label">Telefone</label>
@@ -226,7 +226,7 @@ export default function ConfiguracoesPage() {
         <div className="card p-6 space-y-5">
           <h2 className="section-title">Dados da Fazenda</h2>
           {!farm ? (
-            <p className="text-gray-400 text-sm text-center py-8">Nenhuma fazenda cadastrada na conta.</p>
+            <p className="text-muted-4 text-sm text-center py-8">Nenhuma fazenda cadastrada na conta.</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -294,17 +294,17 @@ export default function ConfiguracoesPage() {
                 <div>
                   <p className="font-bold text-primary-700 text-lg">{planLabel}</p>
                   {user.subscription.endDate && (
-                    <p className="text-sm text-gray-600">Renova em {formatDate(user.subscription.endDate)}</p>
+                    <p className="text-sm text-muted-2">Renova em {formatDate(user.subscription.endDate)}</p>
                   )}
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-3 mt-0.5">
                     Status: {user.subscription.status === 'ACTIVE' ? 'Ativo' : user.subscription.status}
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                <p className="text-gray-600 font-medium">Plano Gratuito</p>
-                <p className="text-sm text-gray-500 mt-1">Sem assinatura ativa.</p>
+              <div className="p-4 bg-paper border border-sand rounded-xl">
+                <p className="text-muted-2 font-medium">Plano Gratuito</p>
+                <p className="text-sm text-muted-3 mt-1">Sem assinatura ativa.</p>
               </div>
             )}
           </div>
@@ -315,7 +315,7 @@ export default function ConfiguracoesPage() {
         <div className="card p-6 space-y-5">
           <h2 className="section-title">Segurança da Conta</h2>
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Alterar Senha</h3>
+            <h3 className="text-sm font-semibold text-muted-1 mb-3">Alterar Senha</h3>
             {pwSaved && (
               <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                 ✓ Senha alterada com sucesso!
@@ -354,7 +354,7 @@ export default function ConfiguracoesPage() {
 
           <div className="pt-4 border-t border-red-100">
             <h3 className="text-sm font-semibold text-red-600 mb-1">Zona de perigo</h3>
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-muted-3 mb-3">
               Excluir sua conta remove permanentemente todos os seus dados, animais e registros. Esta ação não pode ser desfeita.
             </p>
             <button
@@ -371,7 +371,7 @@ export default function ConfiguracoesPage() {
         <div className="card p-6 space-y-5">
           <div>
             <h2 className="section-title">Notificações Push</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-3 mt-1">
               Receba alertas de parto, vacinação e cio diretamente no seu celular, mesmo com o app fechado.
             </p>
           </div>
@@ -395,12 +395,12 @@ export default function ConfiguracoesPage() {
           )}
 
           {push.supported && push.permission !== 'denied' && (
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-paper rounded-xl border border-sand">
               <div>
-                <p className="font-medium text-gray-900 text-sm">
+                <p className="font-medium text-ink text-sm">
                   {push.subscribed ? 'Notificações ativas' : 'Notificações desativadas'}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-muted-3 mt-0.5">
                   {push.subscribed
                     ? 'Você receberá alertas de parto, cio e vacinação.'
                     : 'Ative para receber alertas no celular.'}
@@ -410,7 +410,7 @@ export default function ConfiguracoesPage() {
                 onClick={push.subscribed ? push.unsubscribe : push.subscribe}
                 disabled={push.loading}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-                  push.subscribed ? 'bg-primary-600' : 'bg-gray-300'
+                  push.subscribed ? 'bg-primary-600' : 'bg-sand'
                 }`}
               >
                 <span
@@ -424,7 +424,7 @@ export default function ConfiguracoesPage() {
 
           {push.subscribed && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Tipos de alerta</p>
+              <p className="text-xs font-medium text-muted-2 uppercase tracking-wide">Tipos de alerta</p>
               {[
                 { icon: '🐄', label: 'Parto previsto', desc: 'Aviso quando um parto está próximo' },
                 { icon: '💉', label: 'Vacinação e sanitário', desc: 'Lembretes de retorno e próximas doses' },
@@ -433,8 +433,8 @@ export default function ConfiguracoesPage() {
                 <div key={item.label} className="flex items-center gap-3 p-3 bg-green-50 border border-green-100 rounded-lg">
                   <span className="text-lg">{item.icon}</span>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                    <p className="text-xs text-gray-500">{item.desc}</p>
+                    <p className="text-sm font-medium text-ink">{item.label}</p>
+                    <p className="text-xs text-muted-3">{item.desc}</p>
                   </div>
                   <span className="ml-auto text-xs text-green-600 font-medium">Ativo</span>
                 </div>
@@ -447,8 +447,8 @@ export default function ConfiguracoesPage() {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Excluir conta?</h2>
-            <p className="text-gray-500 text-sm mb-4">
+            <h2 className="text-lg font-semibold text-ink mb-1">Excluir conta?</h2>
+            <p className="text-muted-3 text-sm mb-4">
               Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.
             </p>
             {deleteError && (

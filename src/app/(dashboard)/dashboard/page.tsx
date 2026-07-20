@@ -7,7 +7,7 @@ import Link from 'next/link'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
 import {
   Tag, Droplets, Bell, TrendingUp, CreditCard,
-  CheckCircle, CalendarDays,
+  CheckCircle, CalendarDays, Scale, Syringe,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -19,10 +19,10 @@ const EMPTY_STATS: DashboardStats = {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  CRITICAL: 'bg-red-100 text-red-700 border-red-200',
-  HIGH: 'bg-orange-100 text-orange-700 border-orange-200',
-  MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  LOW: 'bg-gray-100 text-gray-600 border-gray-200',
+  CRITICAL: 'bg-red-50 text-red-700 border-red-200',
+  HIGH: 'bg-alert-bg text-alert-text border-alert-border',
+  MEDIUM: 'bg-amber-50 text-amber-700 border-amber-200',
+  LOW: 'bg-paper text-muted-2 border-sand',
 }
 const PRIORITY_LABELS: Record<string, string> = {
   CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Médio', LOW: 'Baixo',
@@ -34,7 +34,7 @@ function getSaudacao(nome?: string | null): string {
   const h = new Date().getHours()
   const period = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
   const first = nome?.split(' ')[0]
-  return first ? `${period}, ${first}!` : `${period}!`
+  return first ? `${period}, ${first}` : period
 }
 
 export default function DashboardPage() {
@@ -122,18 +122,27 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="page-title">{getSaudacao(userName)}</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{formatDate(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy")}</p>
+      <div className="relative rounded-[22px] px-6 py-7 sm:px-8 overflow-hidden bg-gradient-agro">
+        <div className="absolute inset-0 opacity-70" style={{
+          background: 'radial-gradient(circle at 15% 20%, rgba(220,252,231,0.35), transparent 55%), radial-gradient(circle at 90% 0%, rgba(254,243,199,0.3), transparent 45%)',
+        }} />
+        <div className="relative">
+          <p className="text-[13px] font-bold text-primary-50 uppercase tracking-widest mb-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>
+            {getSaudacao(userName)}
+          </p>
+          <h1 className="font-display italic text-2xl sm:text-[26px] text-white max-w-xl leading-snug" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+            {loading
+              ? 'Carregando os números da sua fazenda…'
+              : `Sua fazenda produziu ${formatNumber(stats.todayMilkTotal)} litros de leite hoje.`}
+          </h1>
+          <p className="text-primary-100/80 text-sm mt-2">{formatDate(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy")}</p>
         </div>
-        <Link href="/rebanho/novo" className="btn-primary">+ Cadastrar Animal</Link>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="stat-card animate-pulse"><div className="w-10 h-10 bg-gray-200 rounded-xl"/><div className="space-y-2"><div className="h-7 bg-gray-200 rounded w-20"/><div className="h-3 bg-gray-100 rounded w-24"/></div></div>
+            <div key={i} className="stat-card animate-pulse"><div className="w-10 h-10 bg-sand rounded-xl"/><div className="space-y-2"><div className="h-7 bg-sand rounded w-20"/><div className="h-3 bg-paper rounded w-24"/></div></div>
           ))}
         </div>
       ) : (
@@ -176,15 +185,15 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                <XAxis dataKey="day" tick={{ fontSize: 12 }}/>
-                <YAxis tick={{ fontSize: 12 }}/>
-                <Tooltip formatter={(v: number) => [`${formatNumber(v)} L`, 'Produção']} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}/>
+                <CartesianGrid strokeDasharray="3 3" stroke="#efe9db"/>
+                <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#9a9280' }}/>
+                <YAxis tick={{ fontSize: 12, fill: '#9a9280' }}/>
+                <Tooltip formatter={(v: number) => [`${formatNumber(v)} L`, 'Produção']} contentStyle={{ borderRadius: 12, border: '1px solid #efe9db' }}/>
                 <Area type="monotone" dataKey="liters" stroke="#16a34a" fill="url(#milkGrad)" strokeWidth={2}/>
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400 gap-2">
+            <div className="h-[200px] flex flex-col items-center justify-center text-muted-4 gap-2">
               <Droplets className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhuma produção registrada nos últimos 7 dias.</p>
               <Link href="/leite" className="text-primary-600 text-sm hover:underline">Registrar produção →</Link>
@@ -198,23 +207,45 @@ export default function DashboardPage() {
             <Link href="/alertas" className="text-sm text-primary-600 hover:underline">Ver todos →</Link>
           </div>
           {alerts.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 flex flex-col items-center gap-2">
+            <div className="text-center py-8 text-muted-4 flex flex-col items-center gap-2">
               <CheckCircle className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhum alerta pendente!</p>
             </div>
           ) : (
             <div className="space-y-3">
               {alerts.map((alert) => (
-                <div key={alert.id} className={`p-3 rounded-lg border ${PRIORITY_COLORS[alert.priority]}`}>
+                <div key={alert.id} className={`p-3 rounded-xl border ${PRIORITY_COLORS[alert.priority]}`}>
                   <div className="flex justify-between items-start gap-2">
-                    <p className="text-sm font-medium leading-snug">{alert.title}</p>
-                    <span className="text-xs font-semibold whitespace-nowrap">{PRIORITY_LABELS[alert.priority]}</span>
+                    <p className="text-sm font-semibold leading-snug">{alert.title}</p>
+                    <span className="text-xs font-bold whitespace-nowrap">{PRIORITY_LABELS[alert.priority]}</span>
                   </div>
                   <p className="text-xs mt-1 opacity-80">{alert.description}</p>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <h2 className="section-title mb-4">Atalhos rápidos</h2>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/leite" className="btn-primary">
+            <Droplets className="w-[17px] h-[17px]" />
+            Lançar produção do dia
+          </Link>
+          <Link href="/pesagem" className="btn-secondary">
+            <Scale className="w-[17px] h-[17px]" />
+            Registrar pesagem
+          </Link>
+          <Link href="/sanitario" className="btn-secondary">
+            <Syringe className="w-[17px] h-[17px]" />
+            Nova ocorrência sanitária
+          </Link>
+          <Link href="/rebanho/novo" className="btn-secondary">
+            <Tag className="w-[17px] h-[17px]" />
+            Cadastrar animal
+          </Link>
         </div>
       </div>
 
@@ -225,7 +256,7 @@ export default function DashboardPage() {
             <Link href="/financeiro" className="text-sm text-primary-600 hover:underline">Ver mais →</Link>
           </div>
           {stats.monthIncome === 0 && stats.monthExpense === 0 ? (
-            <div className="h-[200px] flex flex-col items-center justify-center text-gray-400 gap-2">
+            <div className="h-[200px] flex flex-col items-center justify-center text-muted-4 gap-2">
               <TrendingUp className="w-8 h-8 opacity-40" />
               <p className="text-sm">Nenhum lançamento financeiro este mês.</p>
               <Link href="/financeiro" className="text-primary-600 text-sm hover:underline">Registrar lançamento →</Link>
@@ -233,12 +264,12 @@ export default function DashboardPage() {
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={[{ mes: 'Este mês', receita: stats.monthIncome, despesa: stats.monthExpense }]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                <XAxis dataKey="mes" tick={{ fontSize: 12 }}/>
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}/>
-                <Tooltip formatter={(v: number, n: string) => [formatCurrency(v), n === 'receita' ? 'Receita' : 'Despesa']} contentStyle={{ borderRadius: 8 }}/>
+                <CartesianGrid strokeDasharray="3 3" stroke="#efe9db"/>
+                <XAxis dataKey="mes" tick={{ fontSize: 12, fill: '#9a9280' }}/>
+                <YAxis tick={{ fontSize: 12, fill: '#9a9280' }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`}/>
+                <Tooltip formatter={(v: number, n: string) => [formatCurrency(v), n === 'receita' ? 'Receita' : 'Despesa']} contentStyle={{ borderRadius: 12, border: '1px solid #efe9db' }}/>
                 <Bar dataKey="receita" fill="#16a34a" radius={[4,4,0,0]}/>
-                <Bar dataKey="despesa" fill="#fca5a5" radius={[4,4,0,0]}/>
+                <Bar dataKey="despesa" fill="#92400e" radius={[4,4,0,0]}/>
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -265,13 +296,13 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {farmNotes.length === 0 ? (
-              <p className="text-xs text-gray-400 text-center py-4">Nenhuma anotação ainda.</p>
+              <p className="text-xs text-muted-4 text-center py-4">Nenhuma anotação ainda.</p>
             ) : farmNotes.map((note) => (
-              <div key={note.id} className="flex items-start justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap flex-1">{note.content}</p>
+              <div key={note.id} className="flex items-start justify-between gap-2 bg-paper rounded-lg px-3 py-2">
+                <p className="text-sm text-muted-1 whitespace-pre-wrap flex-1">{note.content}</p>
                 <button
                   onClick={() => handleDeleteNote(note.id)}
-                  className="text-gray-300 hover:text-red-400 transition-colors text-xs shrink-0 mt-0.5"
+                  className="text-muted-4 hover:text-red-400 transition-colors text-xs shrink-0 mt-0.5"
                   title="Excluir"
                 >✕</button>
               </div>
@@ -287,8 +318,11 @@ function StatCard({ icon: iconProp, label, value, sub, color, link }: {
   icon: LucideIcon | string; label: string; value: string; sub?: string; color: string; link?: string
 }) {
   const colorMap: Record<string, string> = {
-    green: 'bg-green-50 text-green-600', blue: 'bg-blue-50 text-blue-600',
-    red: 'bg-red-50 text-red-600', yellow: 'bg-yellow-50 text-yellow-600',
+    green: 'bg-primary-50 text-primary-700', blue: 'bg-sky-50 text-sky-700',
+    red: 'bg-red-50 text-red-600', yellow: 'bg-amber-50 text-amber-700',
+  }
+  const deltaColorMap: Record<string, string> = {
+    green: 'text-primary-600', blue: 'text-muted-3', red: 'text-alert-text', yellow: 'text-alert-text',
   }
   function IconNode() {
     if (typeof iconProp === 'string') return <span className="text-xl leading-none">{iconProp}</span>
@@ -301,9 +335,9 @@ function StatCard({ icon: iconProp, label, value, sub, color, link }: {
         <IconNode />
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        <p className="font-display italic text-4xl text-ink leading-none">{value}</p>
+        <p className="text-[11px] font-bold text-muted-3 uppercase tracking-wide mt-2.5">{label}</p>
+        {sub && <p className={`text-xs font-semibold mt-1 ${deltaColorMap[color] ?? 'text-muted-4'}`}>{sub}</p>}
       </div>
     </div>
   )
@@ -314,16 +348,16 @@ function MiniCard({ label, value, icon: iconProp, isText }: { label: string; val
   function IconNode() {
     if (typeof iconProp === 'string') return <span className="text-lg leading-none">{iconProp}</span>
     const I = iconProp
-    return <I className="w-4 h-4 text-gray-500" />
+    return <I className="w-4 h-4 text-muted-2" />
   }
   return (
-    <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+    <div className="bg-white rounded-xl border border-sand px-4 py-3 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-paper flex items-center justify-center shrink-0">
         <IconNode />
       </div>
       <div>
-        <p className={`font-bold text-gray-900 ${isText ? 'text-base' : 'text-lg'}`}>{value}</p>
-        <p className="text-xs text-gray-500">{label}</p>
+        <p className={`font-bold text-ink ${isText ? 'text-base' : 'text-lg'}`}>{value}</p>
+        <p className="text-xs text-muted-3">{label}</p>
       </div>
     </div>
   )
@@ -349,17 +383,17 @@ function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
           const days = Math.round((due.getTime() - today.getTime()) / 86400000)
           const animalName = item.title.replace('Previsão de Cio — ', '')
           const urgency = days === 0 ? 'hoje!' : days === 1 ? 'amanhã' : `em ${days} dias`
-          const color = days <= 1 ? 'border-pink-300 bg-pink-50' : days <= 5 ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-gray-50'
-          const textColor = days <= 1 ? 'text-pink-700' : days <= 5 ? 'text-orange-600' : 'text-gray-500'
+          const color = days <= 1 ? 'border-pink-300 bg-pink-50' : days <= 5 ? 'border-orange-200 bg-orange-50' : 'border-sand bg-paper'
+          const textColor = days <= 1 ? 'text-pink-700' : days <= 5 ? 'text-orange-600' : 'text-muted-3'
           return (
             <div key={item.id} className={`rounded-xl border px-4 py-3 flex items-center gap-3 ${color}`}>
-              <Tag className="w-5 h-5 text-gray-400 shrink-0" />
+              <Tag className="w-5 h-5 text-muted-4 shrink-0" />
               <div className="min-w-0">
-                <p className="font-semibold text-gray-900 text-sm truncate">{animalName}</p>
+                <p className="font-semibold text-ink text-sm truncate">{animalName}</p>
                 <p className={`text-xs font-medium ${textColor}`}>
                   {formatDate(item.dueDate)} · {urgency}
                 </p>
-                <p className="text-xs text-gray-400 truncate">{item.description.split('—')[0].trim()}</p>
+                <p className="text-xs text-muted-4 truncate">{item.description.split('—')[0].trim()}</p>
               </div>
             </div>
           )

@@ -157,10 +157,10 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
     }
   }
 
-  if (loading) return <div className="card p-12 text-center text-gray-400 text-sm">Carregando...</div>
+  if (loading) return <div className="card p-12 text-center text-muted-4 text-sm">Carregando...</div>
   if (!animal) return (
     <div className="card p-12 text-center">
-      <p className="text-gray-500 mb-4">Animal não encontrado.</p>
+      <p className="text-muted-3 mb-4">Animal não encontrado.</p>
       <Link href="/rebanho" className="btn-secondary">Voltar</Link>
     </div>
   )
@@ -208,19 +208,19 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
           </div>
         </div>
         {animal.observations && (
-          <p className="mt-4 text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+          <p className="mt-4 text-sm text-muted-2 bg-paper rounded-lg p-3">
             📝 {animal.observations}
           </p>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-sand">
         <div className="flex gap-0 overflow-x-auto">
           {TABS.map((tab, i) => (
             <button key={tab} onClick={() => setActiveTab(i)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === i ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === i ? 'border-primary-600 text-primary-700' : 'border-transparent text-muted-3 hover:text-muted-1'
               }`}>
               {tab}
             </button>
@@ -235,7 +235,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
               <h3 className="section-title mb-4">Últimas Pesagens</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={[...animal.weightRecords].reverse().slice(-10).map((w) => ({ ...w, date: formatDate(w.date, 'dd/MM') }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} domain={['auto', 'auto']} />
                   <Tooltip formatter={(v: number) => [`${v} kg`, 'Peso']} />
@@ -249,7 +249,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
               <h3 className="section-title mb-4">Produção Recente (L/dia)</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={[...animal.milkProductions].reverse().slice(-10).map((m) => ({ ...m, date: formatDate(m.date, 'dd/MM') }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} domain={['auto', 'auto']} />
                   <Tooltip formatter={(v: number) => [`${formatNumber(v)} L`, 'Produção']} />
@@ -259,29 +259,29 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
             </div>
           )}
           {animal.weightRecords.length === 0 && animal.milkProductions.length === 0 && (
-            <div className="card p-8 text-center text-gray-400 text-sm sm:col-span-2">Nenhum registro encontrado.</div>
+            <div className="card p-8 text-center text-muted-4 text-sm sm:col-span-2">Nenhum registro encontrado.</div>
           )}
         </div>
       )}
 
       {activeTab === 1 && (
         <div className="card overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-4 border-b border-paper">
             <h3 className="section-title">Histórico de Produção Leiteira</h3>
           </div>
           {animal.milkProductions.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-sm">Nenhum registro de leite.</div>
+            <div className="p-8 text-center text-muted-4 text-sm">Nenhum registro de leite.</div>
           ) : (
             <table className="w-full text-sm">
-              <thead><tr className="bg-gray-50">
-                <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Data</th>
-                <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Manhã (L)</th>
-                <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Tarde (L)</th>
-                <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Total (L)</th>
+              <thead><tr className="bg-paper">
+                <th className="text-left px-4 py-2.5 text-muted-2 font-medium">Data</th>
+                <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Manhã (L)</th>
+                <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Tarde (L)</th>
+                <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Total (L)</th>
               </tr></thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {animal.milkProductions.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-50">
+                  <tr key={m.id} className="hover:bg-paper">
                     <td className="px-4 py-3">{formatDate(m.date)}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(m.morningLiters ?? 0)}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(m.afternoonLiters ?? 0)}</td>
@@ -296,24 +296,24 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
 
       {activeTab === 2 && (
         <div className="card overflow-hidden">
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-4 border-b border-paper">
             <h3 className="section-title">Histórico de Pesagens</h3>
           </div>
           {animal.weightRecords.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 text-sm">Nenhuma pesagem registrada.</div>
+            <div className="p-8 text-center text-muted-4 text-sm">Nenhuma pesagem registrada.</div>
           ) : (
             <table className="w-full text-sm">
-              <thead><tr className="bg-gray-50">
-                <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Data</th>
-                <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Peso (kg)</th>
-                <th className="text-left px-4 py-2.5 text-gray-600 font-medium hidden md:table-cell">Observações</th>
+              <thead><tr className="bg-paper">
+                <th className="text-left px-4 py-2.5 text-muted-2 font-medium">Data</th>
+                <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Peso (kg)</th>
+                <th className="text-left px-4 py-2.5 text-muted-2 font-medium hidden md:table-cell">Observações</th>
               </tr></thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {animal.weightRecords.map((w) => (
-                  <tr key={w.id} className="hover:bg-gray-50">
+                  <tr key={w.id} className="hover:bg-paper">
                     <td className="px-4 py-3">{formatDate(w.date)}</td>
                     <td className="px-4 py-3 text-right font-semibold">{w.weight} kg</td>
-                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{w.notes ?? '—'}</td>
+                    <td className="px-4 py-3 text-muted-3 hidden md:table-cell">{w.notes ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -325,19 +325,19 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
       {activeTab === 3 && (
         <div className="space-y-3">
           {animal.healthRecords.length === 0 ? (
-            <div className="card p-8 text-center text-gray-400 text-sm">Nenhum registro sanitário.</div>
+            <div className="card p-8 text-center text-muted-4 text-sm">Nenhum registro sanitário.</div>
           ) : animal.healthRecords.map((h) => (
             <div key={h.id} className="card p-4">
               <div className="flex justify-between items-start">
                 <div>
                   <span className="badge bg-blue-100 text-blue-700 mb-2">{LABELS.healthType[h.type]}</span>
-                  <p className="font-medium text-gray-900">{h.description}</p>
-                  {h.veterinarian && <p className="text-sm text-gray-500">Dr(a). {h.veterinarian}</p>}
-                  {h.medications && <p className="text-sm text-gray-500">Medicamentos: {h.medications}</p>}
+                  <p className="font-medium text-ink">{h.description}</p>
+                  {h.veterinarian && <p className="text-sm text-muted-3">Dr(a). {h.veterinarian}</p>}
+                  {h.medications && <p className="text-sm text-muted-3">Medicamentos: {h.medications}</p>}
                 </div>
                 <div className="text-right text-sm">
-                  <p className="font-medium text-gray-700">{formatDate(h.date)}</p>
-                  {h.cost && <p className="text-gray-500">{formatCurrency(h.cost)}</p>}
+                  <p className="font-medium text-muted-1">{formatDate(h.date)}</p>
+                  {h.cost && <p className="text-muted-3">{formatCurrency(h.cost)}</p>}
                   {h.nextDueDate && (
                     <p className="text-orange-600 text-xs mt-1">Próximo: {formatDate(h.nextDueDate)}</p>
                   )}
@@ -351,22 +351,22 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
       {activeTab === 4 && (
         <div className="space-y-3">
           {animal.reproductiveEvents.length === 0 ? (
-            <div className="card p-8 text-center text-gray-400 text-sm">Nenhum evento reprodutivo.</div>
+            <div className="card p-8 text-center text-muted-4 text-sm">Nenhum evento reprodutivo.</div>
           ) : animal.reproductiveEvents.map((r) => (
             <div key={r.id} className="card p-4 flex justify-between items-start">
               <div>
                 <span className="badge bg-purple-100 text-purple-700 mb-2">
                   {LABELS.reproductiveType[r.type]}
                 </span>
-                {r.bullName && <p className="text-sm text-gray-700">Touro/Sêmen: {r.bullName}</p>}
-                {r.result && <p className="text-sm text-gray-500">{r.result}</p>}
+                {r.bullName && <p className="text-sm text-muted-1">Touro/Sêmen: {r.bullName}</p>}
+                {r.result && <p className="text-sm text-muted-3">{r.result}</p>}
                 {r.expectedCalving && (
                   <p className="text-sm text-green-700 font-medium">
                     Parto previsto: {formatDate(r.expectedCalving)}
                   </p>
                 )}
               </div>
-              <p className="text-sm text-gray-500">{formatDate(r.date)}</p>
+              <p className="text-sm text-muted-3">{formatDate(r.date)}</p>
             </div>
           ))}
         </div>
@@ -388,16 +388,16 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
           </form>
 
           {notes.length === 0 ? (
-            <div className="card p-8 text-center text-gray-400 text-sm">Nenhuma anotação ainda.</div>
+            <div className="card p-8 text-center text-muted-4 text-sm">Nenhuma anotação ainda.</div>
           ) : notes.map(note => (
             <div key={note.id} className="card p-4 flex justify-between items-start gap-3">
               <div className="flex-1">
-                <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
-                <p className="text-xs text-gray-400 mt-1">{formatDate(note.createdAt)}</p>
+                <p className="text-sm text-ink whitespace-pre-wrap">{note.content}</p>
+                <p className="text-xs text-muted-4 mt-1">{formatDate(note.createdAt)}</p>
               </div>
               <button
                 onClick={() => handleDeleteNote(note.id)}
-                className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none flex-shrink-0"
+                className="text-sand hover:text-red-500 transition-colors text-lg leading-none flex-shrink-0"
               >
                 ×
               </button>
@@ -410,9 +410,9 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
       {editOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">Editar Animal</h2>
-              <button onClick={() => setEditOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            <div className="p-5 border-b border-paper flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-ink">Editar Animal</h2>
+              <button onClick={() => setEditOpen(false)} className="text-muted-4 hover:text-muted-2 text-xl leading-none">×</button>
             </div>
             <form onSubmit={handleEdit} className="p-5 space-y-4">
               {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
@@ -484,9 +484,9 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                   accept="image/*"
                   disabled={uploadingPhoto}
                   onChange={handlePhotoUpload}
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                  className="block w-full text-sm text-muted-3 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                 />
-                {uploadingPhoto && <p className="text-xs text-gray-400 mt-1">Enviando foto...</p>}
+                {uploadingPhoto && <p className="text-xs text-muted-4 mt-1">Enviando foto...</p>}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setEditOpen(false)} className="btn-secondary flex-1">Cancelar</button>
@@ -503,8 +503,8 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Excluir animal?</h2>
-            <p className="text-gray-500 text-sm mb-6">
+            <h2 className="text-lg font-semibold text-ink mb-2">Excluir animal?</h2>
+            <p className="text-muted-3 text-sm mb-6">
               Tem certeza que deseja excluir <strong>{animal.name ?? `#${animal.tag}`}</strong>? Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
@@ -524,8 +524,8 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-      <p className="text-sm font-semibold text-gray-900">{value}</p>
+      <p className="text-xs text-muted-3 mb-0.5">{label}</p>
+      <p className="text-sm font-semibold text-ink">{value}</p>
     </div>
   )
 }

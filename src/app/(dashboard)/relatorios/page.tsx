@@ -89,7 +89,7 @@ export default function RelatoriosPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Relatórios</h1>
-          <p className="text-gray-500 text-sm">Análises e indicadores da fazenda</p>
+          <p className="text-muted-3 text-sm">Análises e indicadores da fazenda</p>
         </div>
         <select
           className="input-field w-auto text-sm"
@@ -106,15 +106,15 @@ export default function RelatoriosPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="card p-4">
-            <p className="text-xs text-gray-500 mb-1">{kpi.label}</p>
+          <div key={kpi.label} className="stat-card gap-1.5 p-4">
+            <p className="text-[11px] font-bold text-muted-3 uppercase tracking-wide">{kpi.label}</p>
             <p
-              className={`text-xl font-bold ${
+              className={`font-display italic text-[28px] leading-none ${
                 kpi.value === '—'
-                  ? 'text-gray-300'
+                  ? 'text-muted-4'
                   : kpi.green === false
                   ? 'text-red-600'
-                  : 'text-gray-900'
+                  : 'text-ink'
               }`}
             >
               {kpi.value}
@@ -132,13 +132,13 @@ export default function RelatoriosPage() {
             className={`p-3 rounded-xl border-2 text-left transition-all ${
               activeReport === rt.id
                 ? 'border-primary-500 bg-primary-50'
-                : 'bg-white border-gray-100 hover:border-gray-200'
+                : 'bg-white border-paper hover:border-sand'
             }`}
           >
             <div className="text-xl mb-1">{rt.icon}</div>
             <p
               className={`text-xs font-semibold ${
-                activeReport === rt.id ? 'text-primary-700' : 'text-gray-700'
+                activeReport === rt.id ? 'text-primary-700' : 'text-muted-1'
               }`}
             >
               {rt.label}
@@ -148,15 +148,15 @@ export default function RelatoriosPage() {
       </div>
 
       {loading && (
-        <div className="card p-12 text-center text-gray-400 text-sm">Carregando dados...</div>
+        <div className="card p-12 text-center text-muted-4 text-sm">Carregando dados...</div>
       )}
 
       {!loading && activeReport === 'milk' && (
         noMilk ? (
           <div className="card p-12 text-center">
             <p className="text-4xl mb-3">🥛</p>
-            <p className="text-gray-600 font-medium">Nenhuma produção registrada ainda.</p>
-            <p className="text-gray-400 text-sm mt-1">Registre a produção diária na página de Leite.</p>
+            <p className="text-muted-2 font-medium">Nenhuma produção registrada ainda.</p>
+            <p className="text-muted-4 text-sm mt-1">Registre a produção diária na página de Leite.</p>
           </div>
         ) : (
           <div className="card p-5">
@@ -169,7 +169,7 @@ export default function RelatoriosPage() {
                     <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis
                   tick={{ fontSize: 11 }}
@@ -194,8 +194,8 @@ export default function RelatoriosPage() {
         noFin ? (
           <div className="card p-12 text-center">
             <p className="text-4xl mb-3">💰</p>
-            <p className="text-gray-600 font-medium">Nenhum registro financeiro encontrado.</p>
-            <p className="text-gray-400 text-sm mt-1">Adicione receitas e despesas na página Financeiro.</p>
+            <p className="text-muted-2 font-medium">Nenhum registro financeiro encontrado.</p>
+            <p className="text-muted-4 text-sm mt-1">Adicione receitas e despesas na página Financeiro.</p>
           </div>
         ) : (
           <div className="grid lg:grid-cols-2 gap-6">
@@ -203,7 +203,7 @@ export default function RelatoriosPage() {
               <h2 className="section-title mb-4">Receita vs Despesa (R$)</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={financialData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis
                     tick={{ fontSize: 12 }}
@@ -217,7 +217,7 @@ export default function RelatoriosPage() {
                   />
                   <Legend />
                   <Bar dataKey="receita" fill="#16a34a" radius={[3, 3, 0, 0]} name="receita" />
-                  <Bar dataKey="despesa" fill="#fca5a5" radius={[3, 3, 0, 0]} name="despesa" />
+                  <Bar dataKey="despesa" fill="#92400e" radius={[3, 3, 0, 0]} name="despesa" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -231,7 +231,7 @@ export default function RelatoriosPage() {
                       <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                   <YAxis
                     tick={{ fontSize: 11 }}
@@ -257,8 +257,8 @@ export default function RelatoriosPage() {
           <p className="text-4xl mb-3">
             {REPORT_TYPES.find((r) => r.id === activeReport)?.icon}
           </p>
-          <p className="text-gray-600 font-medium">Relatório em desenvolvimento</p>
-          <p className="text-gray-400 text-sm mt-1">Este relatório será disponibilizado em breve.</p>
+          <p className="text-muted-2 font-medium">Relatório em desenvolvimento</p>
+          <p className="text-muted-4 text-sm mt-1">Este relatório será disponibilizado em breve.</p>
         </div>
       )}
     </div>

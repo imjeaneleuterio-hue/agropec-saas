@@ -124,7 +124,7 @@ export default function PesagemPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Controle de Pesagem</h1>
-          <p className="text-gray-500 text-sm">Monitoramento do peso e ganho de peso do rebanho</p>
+          <p className="text-muted-3 text-sm">Monitoramento do peso e ganho de peso do rebanho</p>
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Nova Pesagem</button>
       </div>
@@ -140,8 +140,8 @@ export default function PesagemPage() {
           <div key={s.label} className="stat-card">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${s.color}`}>{s.icon}</div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className="text-2xl font-bold text-ink">{s.value}</p>
+              <p className="text-xs text-muted-3">{s.label}</p>
             </div>
           </div>
         ))}
@@ -154,7 +154,7 @@ export default function PesagemPage() {
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} unit=" kg" />
                 <Tooltip formatter={(v: number) => [`${formatNumber(v, 0)} kg`, 'Média']} />
@@ -162,7 +162,7 @@ export default function PesagemPage() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">
+            <div className="h-[220px] flex items-center justify-center text-muted-4 text-sm">
               Nenhuma pesagem registrada ainda
             </div>
           )}
@@ -175,60 +175,60 @@ export default function PesagemPage() {
             <div className="space-y-3">
               {latestByAnimal.map((r, i) => (
                 <div key={r.id} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-gray-400 w-5">#{i + 1}</span>
+                  <span className="text-xs font-bold text-muted-4 w-5">#{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-gray-900 truncate">
-                      {r.animal.name ?? 'Sem nome'} <span className="text-gray-400">#{r.animal.tag}</span>
+                    <p className="font-medium text-sm text-ink truncate">
+                      {r.animal.name ?? 'Sem nome'} <span className="text-muted-4">#{r.animal.tag}</span>
                     </p>
-                    <p className="text-xs text-gray-500">{r.animal.breed}</p>
+                    <p className="text-xs text-muted-3">{r.animal.breed}</p>
                   </div>
                   <span className="text-sm font-bold text-primary-700">{formatNumber(r.weight, 0)} kg</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm text-center py-8">Sem dados</p>
+            <p className="text-muted-4 text-sm text-center py-8">Sem dados</p>
           )}
         </div>
       </div>
 
       {/* Records table */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
+        <div className="p-4 border-b border-paper">
           <h2 className="section-title">Histórico de Pesagens</h2>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
         ) : records.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">
+          <div className="p-8 text-center text-muted-4 text-sm">
             Nenhuma pesagem registrada. Clique em "+ Nova Pesagem" para começar.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-4 py-2.5 text-gray-600 font-medium">Animal</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium">Peso (kg)</th>
-                  <th className="text-right px-4 py-2.5 text-gray-600 font-medium hidden sm:table-cell">Data</th>
-                  <th className="text-left px-4 py-2.5 text-gray-600 font-medium hidden md:table-cell">Observações</th>
+                <tr className="bg-paper">
+                  <th className="text-left px-4 py-2.5 text-muted-2 font-medium">Animal</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium">Peso (kg)</th>
+                  <th className="text-right px-4 py-2.5 text-muted-2 font-medium hidden sm:table-cell">Data</th>
+                  <th className="text-left px-4 py-2.5 text-muted-2 font-medium hidden md:table-cell">Observações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {records.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
+                  <tr key={r.id} className="hover:bg-paper">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-sm">⚖️</div>
                         <div>
-                          <p className="font-medium text-gray-900">{r.animal.name ?? 'Sem nome'}</p>
-                          <p className="text-xs text-gray-500">{r.animal.breed} • #{r.animal.tag}</p>
+                          <p className="font-medium text-ink">{r.animal.name ?? 'Sem nome'}</p>
+                          <p className="text-xs text-muted-3">{r.animal.breed} • #{r.animal.tag}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-primary-700">{formatNumber(r.weight, 0)} kg</td>
-                    <td className="px-4 py-3 text-right text-gray-500 hidden sm:table-cell">{formatDate(r.date)}</td>
-                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{r.notes ?? '—'}</td>
+                    <td className="px-4 py-3 text-right text-muted-3 hidden sm:table-cell">{formatDate(r.date)}</td>
+                    <td className="px-4 py-3 text-muted-3 hidden md:table-cell">{r.notes ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>

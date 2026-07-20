@@ -139,7 +139,7 @@ export default function BezerrosPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="page-title">Bezerros</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
+          <p className="text-muted-3 text-sm mt-0.5">
             {counts.total} bezerro{counts.total !== 1 ? 's' : ''} cadastrado{counts.total !== 1 ? 's' : ''}
           </p>
         </div>
@@ -149,15 +149,15 @@ export default function BezerrosPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Total', value: counts.total, icon: '🐮', color: 'text-gray-900' },
+          { label: 'Total', value: counts.total, icon: '🐮', color: 'text-ink' },
           { label: 'Machos', value: counts.male, icon: '♂', color: 'text-blue-700' },
           { label: 'Fêmeas', value: counts.female, icon: '♀', color: 'text-pink-600' },
           { label: 'Recém-nascidos', value: counts.newborn, icon: '🍼', color: 'text-yellow-700' },
         ].map((c) => (
-          <div key={c.label} className="bg-white rounded-xl border border-gray-100 px-4 py-3">
+          <div key={c.label} className="bg-white rounded-xl border border-paper px-4 py-3">
             <div className="flex items-center gap-2 mb-1">
               <span>{c.icon}</span>
-              <span className="text-xs text-gray-500">{c.label}</span>
+              <span className="text-xs text-muted-3">{c.label}</span>
             </div>
             <p className={cn('text-xl font-bold', c.color)}>{c.value}</p>
           </div>
@@ -191,11 +191,11 @@ export default function BezerrosPage() {
 
       {/* Lista */}
       {loading ? (
-        <div className="card p-12 text-center text-gray-400 text-sm">Carregando bezerros...</div>
+        <div className="card p-12 text-center text-muted-4 text-sm">Carregando bezerros...</div>
       ) : filtered.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-4xl mb-3">🐮</p>
-          <p className="text-gray-500">
+          <p className="text-muted-3">
             {calves.length === 0 ? 'Nenhum bezerro cadastrado.' : 'Nenhum bezerro encontrado com esses filtros.'}
           </p>
           {calves.length === 0 && (
@@ -207,42 +207,42 @@ export default function BezerrosPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Bezerro</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden sm:table-cell">Sexo</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Idade</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Mãe</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-600">Ações</th>
+                <tr className="bg-paper border-b border-paper">
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2">Bezerro</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2 hidden sm:table-cell">Sexo</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2">Idade</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2 hidden md:table-cell">Mãe</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-2">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-paper">
                 {filtered.map((calf) => {
                   const mother = getMother(calf.motherId)
                   const nearWeaning = isNearWeaning(calf)
                   return (
-                    <tr key={calf.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={calf.id} className="hover:bg-paper transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-yellow-50 border border-yellow-200 rounded-full flex items-center justify-center text-base flex-shrink-0">
                             🐮
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{calf.name ?? `Bezerro #${calf.tag}`}</p>
-                            <p className="text-xs text-gray-500">Brinco #{calf.tag} · {calf.breed}</p>
+                            <p className="font-medium text-ink">{calf.name ?? `Bezerro #${calf.tag}`}</p>
+                            <p className="text-xs text-muted-3">Brinco #{calf.tag} · {calf.breed}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">{LABELS.sex[calf.sex]}</td>
+                      <td className="px-4 py-3 text-muted-2 hidden sm:table-cell">{LABELS.sex[calf.sex]}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-700">{calf.birthDate ? calcAge(calf.birthDate) : '—'}</span>
+                          <span className="text-muted-1">{calf.birthDate ? calcAge(calf.birthDate) : '—'}</span>
                           {nearWeaning && (
                             <span className="badge bg-orange-100 text-orange-700">Desmame</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                      <td className="px-4 py-3 text-muted-2 hidden md:table-cell">
                         {mother ? (mother.name ?? `#${mother.tag}`) : '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -282,11 +282,11 @@ export default function BezerrosPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-paper">
+              <h2 className="text-lg font-bold text-ink">
                 {editingId ? 'Editar Bezerro' : 'Cadastrar Bezerro'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              <button onClick={() => setShowModal(false)} className="text-muted-4 hover:text-muted-2 text-2xl leading-none">×</button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4 overflow-y-auto">
               {formError && (

@@ -14,7 +14,7 @@ const EVENT_COLORS: Record<string, string> = {
   PREGNANCY_CHECK_NEGATIVE: 'bg-red-100 text-red-700',
   CALVING: 'bg-yellow-100 text-yellow-700',
   WEANING: 'bg-orange-100 text-orange-700',
-  DRY_OFF: 'bg-gray-100 text-gray-700',
+  DRY_OFF: 'bg-paper text-muted-1',
   ABORTION: 'bg-red-200 text-red-800',
 }
 
@@ -174,7 +174,7 @@ export default function ReproducaoPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Calendário Reprodutivo</h1>
-          <p className="text-gray-500 text-sm">Gestão dos eventos reprodutivos do rebanho</p>
+          <p className="text-muted-3 text-sm">Gestão dos eventos reprodutivos do rebanho</p>
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Novo Evento</button>
       </div>
@@ -193,13 +193,13 @@ export default function ReproducaoPage() {
           { icon: '🤰', label: 'Prenhas', value: pregnant, color: 'bg-green-50 text-green-700' },
           { icon: '💉', label: 'IA / Monta (30d)', value: inseminated30, color: 'bg-blue-50 text-blue-700' },
           { icon: '🐮', label: 'Partos Previstos (30d)', value: calvings30, color: 'bg-yellow-50 text-yellow-700' },
-          { icon: '🚫', label: 'Secagens Registradas', value: dryOff, color: 'bg-gray-50 text-gray-700' },
+          { icon: '🚫', label: 'Secagens Registradas', value: dryOff, color: 'bg-paper text-muted-1' },
         ].map((s) => (
           <div key={s.label} className="stat-card">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${s.color}`}>{s.icon}</div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className="text-2xl font-bold text-ink">{s.value}</p>
+              <p className="text-xs text-muted-3">{s.label}</p>
             </div>
           </div>
         ))}
@@ -210,7 +210,7 @@ export default function ReproducaoPage() {
         <div className="card p-5">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="section-title">🤰 Prenhas</h2>
-            <span className="text-xs text-gray-400 font-normal">(monta/IA há +30 dias sem evento negativo)</span>
+            <span className="text-xs text-muted-4 font-normal">(monta/IA há +30 dias sem evento negativo)</span>
           </div>
           <div className="space-y-3">
             {provavelmentePrenhas.map((e) => {
@@ -221,22 +221,22 @@ export default function ReproducaoPage() {
                 <div key={e.id} className="flex items-center gap-4 p-3 bg-green-50 border border-green-200 rounded-xl">
                   <div className="text-2xl">🤰</div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {e.animal?.name ?? 'Animal'} <span className="text-gray-500 text-sm">#{e.animal?.tag}</span>
+                    <p className="font-medium text-ink">
+                      {e.animal?.name ?? 'Animal'} <span className="text-muted-3 text-sm">#{e.animal?.tag}</span>
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-2">
                       {e.type === 'INSEMINATION' ? 'Inseminada' : 'Montada'} em {formatDate(e.date)} · <span className="font-medium">{dias} dias</span>
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500">Parto estimado</p>
-                    <p className="font-semibold text-gray-900">{formatDate(partoPrevisto)}</p>
+                    <p className="text-xs text-muted-3">Parto estimado</p>
+                    <p className="font-semibold text-ink">{formatDate(partoPrevisto)}</p>
                   </div>
                 </div>
               )
             })}
           </div>
-          <p className="text-xs text-gray-400 mt-3">Confirme registrando um Diagnóstico Positivo para cada animal.</p>
+          <p className="text-xs text-muted-4 mt-3">Confirme registrando um Diagnóstico Positivo para cada animal.</p>
         </div>
       )}
 
@@ -251,14 +251,14 @@ export default function ReproducaoPage() {
                 <div key={e.id} className="flex items-center gap-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
                   <div className="text-2xl">🐮</div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {e.animal?.name ?? 'Animal'} <span className="text-gray-500 text-sm">#{e.animal?.tag}</span>
+                    <p className="font-medium text-ink">
+                      {e.animal?.name ?? 'Animal'} <span className="text-muted-3 text-sm">#{e.animal?.tag}</span>
                     </p>
-                    <p className="text-sm text-gray-600">Inseminada em {formatDate(e.date)}</p>
+                    <p className="text-sm text-muted-2">Inseminada em {formatDate(e.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{formatDate(e.expectedCalving!)}</p>
-                    <p className={cn('text-xs font-medium', daysLeft <= 15 ? 'text-red-600' : daysLeft <= 30 ? 'text-orange-600' : 'text-gray-500')}>
+                    <p className="font-semibold text-ink">{formatDate(e.expectedCalving!)}</p>
+                    <p className={cn('text-xs font-medium', daysLeft <= 15 ? 'text-red-600' : daysLeft <= 30 ? 'text-orange-600' : 'text-muted-3')}>
                       {daysLeft <= 0 ? 'Hoje!' : `Em ${daysLeft} dias`}
                     </p>
                   </div>
@@ -281,15 +281,15 @@ export default function ReproducaoPage() {
                 <div key={item.id} className="flex items-center gap-4 p-3 bg-pink-50 border border-pink-200 rounded-xl">
                   <div className="text-2xl">❤️</div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{animalName}</p>
-                    <p className="text-sm text-gray-500">{item.description.split('—')[0].trim()}</p>
+                    <p className="font-medium text-ink">{animalName}</p>
+                    <p className="text-sm text-muted-3">{item.description.split('—')[0].trim()}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">{formatDate(item.dueDate)}</p>
+                    <p className="font-semibold text-ink">{formatDate(item.dueDate)}</p>
                     <p className={cn('text-xs font-medium',
                       daysLeft <= 0 ? 'text-pink-700 font-bold' :
                       daysLeft <= 2 ? 'text-pink-600' :
-                      daysLeft <= 7 ? 'text-orange-500' : 'text-gray-500'
+                      daysLeft <= 7 ? 'text-orange-500' : 'text-muted-3'
                     )}>
                       {daysLeft <= 0 ? 'Hoje!' : daysLeft === 1 ? 'Amanhã' : `Em ${daysLeft} dias`}
                     </p>
@@ -303,7 +303,7 @@ export default function ReproducaoPage() {
 
       {/* Events History */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-3 items-center justify-between">
+        <div className="p-4 border-b border-paper flex flex-wrap gap-3 items-center justify-between">
           <h2 className="section-title">Histórico de Eventos</h2>
           <select className="input-field w-auto text-sm" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="ALL">Todos os eventos</option>
@@ -313,15 +313,15 @@ export default function ReproducaoPage() {
           </select>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">
+          <div className="p-8 text-center text-muted-4 text-sm">
             Nenhum evento registrado. Clique em "+ Novo Evento" para adicionar.
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-paper">
             {filtered.map((event) => (
-              <div key={event.id} className="px-4 py-3 flex items-start gap-4 hover:bg-gray-50">
+              <div key={event.id} className="px-4 py-3 flex items-start gap-4 hover:bg-paper">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${EVENT_COLORS[event.type]}`}>
                   {EVENT_ICONS[event.type]}
                 </div>
@@ -330,18 +330,18 @@ export default function ReproducaoPage() {
                     <span className={`badge text-xs ${EVENT_COLORS[event.type]}`}>
                       {LABELS.reproductiveType[event.type]}
                     </span>
-                    <span className="font-medium text-gray-900">
-                      {event.animal?.name ?? 'Animal'} <span className="text-gray-400 font-normal">#{event.animal?.tag}</span>
+                    <span className="font-medium text-ink">
+                      {event.animal?.name ?? 'Animal'} <span className="text-muted-4 font-normal">#{event.animal?.tag}</span>
                     </span>
                   </div>
-                  {event.bullName && <p className="text-sm text-gray-500 mt-0.5">Touro: {event.bullName}</p>}
-                  {event.result && <p className="text-sm text-gray-600 mt-0.5">{event.result}</p>}
-                  {event.notes && <p className="text-xs text-gray-400 mt-0.5">{event.notes}</p>}
+                  {event.bullName && <p className="text-sm text-muted-3 mt-0.5">Touro: {event.bullName}</p>}
+                  {event.result && <p className="text-sm text-muted-2 mt-0.5">{event.result}</p>}
+                  {event.notes && <p className="text-xs text-muted-4 mt-0.5">{event.notes}</p>}
                   {event.expectedCalving && (
                     <p className="text-xs text-green-600 font-medium mt-0.5">Parto previsto: {formatDate(event.expectedCalving)}</p>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 whitespace-nowrap">{formatDate(event.date)}</p>
+                <p className="text-xs text-muted-3 whitespace-nowrap">{formatDate(event.date)}</p>
               </div>
             ))}
           </div>
@@ -392,14 +392,14 @@ export default function ReproducaoPage() {
               )}
               {form.type === 'PREGNANCY_CHECK_POSITIVE' && (
                 <div>
-                  <label className="label">Data prevista do parto <span className="text-gray-400 font-normal">(opcional)</span></label>
+                  <label className="label">Data prevista do parto <span className="text-muted-4 font-normal">(opcional)</span></label>
                   <input
                     type="date"
                     className="input-field"
                     value={form.expectedCalving}
                     onChange={(e) => setForm({ ...form, expectedCalving: e.target.value })}
                   />
-                  <p className="text-xs text-gray-400 mt-1">Se não informar, será calculado automaticamente (~250 dias a partir do diagnóstico).</p>
+                  <p className="text-xs text-muted-4 mt-1">Se não informar, será calculado automaticamente (~250 dias a partir do diagnóstico).</p>
                 </div>
               )}
               {(form.type === 'PREGNANCY_CHECK_POSITIVE' || form.type === 'PREGNANCY_CHECK_NEGATIVE' || form.type === 'CALVING') && (

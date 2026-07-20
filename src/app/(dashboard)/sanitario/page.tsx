@@ -15,7 +15,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: 'border-red-300 bg-red-50',
   HIGH: 'border-orange-300 bg-orange-50',
   MEDIUM: 'border-yellow-300 bg-yellow-50',
-  LOW: 'border-gray-200 bg-gray-50',
+  LOW: 'border-sand bg-paper',
 }
 
 const EMPTY_FORM = {
@@ -121,7 +121,7 @@ export default function SanitarioPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="page-title">Controle Sanitário</h1>
-          <p className="text-gray-500 text-sm">Saúde, vacinações e tratamentos do rebanho</p>
+          <p className="text-muted-3 text-sm">Saúde, vacinações e tratamentos do rebanho</p>
         </div>
         <button onClick={() => setShowModal(true)} className="btn-primary">+ Novo Registro</button>
       </div>
@@ -138,8 +138,8 @@ export default function SanitarioPage() {
           <div key={s.label} className="stat-card">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${s.color}`}>{s.icon}</div>
             <div>
-              <p className={`font-bold text-gray-900 ${s.isText ? 'text-lg' : 'text-2xl'}`}>{s.value}</p>
-              <p className="text-xs text-gray-500">{s.label}</p>
+              <p className={`font-bold text-ink ${s.isText ? 'text-lg' : 'text-2xl'}`}>{s.value}</p>
+              <p className="text-xs text-muted-3">{s.label}</p>
             </div>
           </div>
         ))}
@@ -157,14 +157,14 @@ export default function SanitarioPage() {
                 <div key={item.id} className={`flex items-center gap-4 p-3 rounded-xl border ${PRIORITY_COLORS[priority]}`}>
                   <span className="text-xl">{TYPE_ICONS[item.type]}</span>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{item.description}</p>
+                    <p className="font-medium text-ink">{item.description}</p>
                     {item.animal && (
-                      <p className="text-sm text-gray-500">{item.animal.name ?? 'Animal'} #{item.animal.tag}</p>
+                      <p className="text-sm text-muted-3">{item.animal.name ?? 'Animal'} #{item.animal.tag}</p>
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-gray-800">{formatDate(item.nextDueDate!)}</p>
-                    <p className="text-xs text-gray-500">em {daysLeft} dia{daysLeft !== 1 ? 's' : ''}</p>
+                    <p className="text-sm font-semibold text-ink">{formatDate(item.nextDueDate!)}</p>
+                    <p className="text-xs text-muted-3">em {daysLeft} dia{daysLeft !== 1 ? 's' : ''}</p>
                   </div>
                 </div>
               )
@@ -175,7 +175,7 @@ export default function SanitarioPage() {
 
       {/* Records */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-3 items-center justify-between">
+        <div className="p-4 border-b border-paper flex flex-wrap gap-3 items-center justify-between">
           <h2 className="section-title">Histórico Sanitário</h2>
           <select className="input-field w-auto text-sm" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="ALL">Todos os tipos</option>
@@ -183,15 +183,15 @@ export default function SanitarioPage() {
           </select>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="p-8 text-center text-muted-4 text-sm">Carregando...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">
+          <div className="p-8 text-center text-muted-4 text-sm">
             Nenhum registro encontrado. Clique em "+ Novo Registro" para adicionar.
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-paper">
             {filtered.map((record) => (
-              <div key={record.id} className="px-4 py-4 hover:bg-gray-50">
+              <div key={record.id} className="px-4 py-4 hover:bg-paper">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
                     {TYPE_ICONS[record.type]}
@@ -200,15 +200,15 @@ export default function SanitarioPage() {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="badge bg-blue-100 text-blue-700 text-xs">{LABELS.healthType[record.type]}</span>
                       {record.animal && (
-                        <span className="text-sm text-gray-500">
-                          {record.animal.name ?? 'Animal'} <span className="text-gray-400">#{record.animal.tag}</span>
+                        <span className="text-sm text-muted-3">
+                          {record.animal.name ?? 'Animal'} <span className="text-muted-4">#{record.animal.tag}</span>
                         </span>
                       )}
                     </div>
-                    <p className="font-medium text-gray-900">{record.description}</p>
-                    {record.medications && <p className="text-sm text-gray-500 mt-0.5">💊 {record.medications}</p>}
-                    {record.veterinarian && <p className="text-sm text-gray-500">👨‍⚕️ {record.veterinarian}</p>}
-                    {record.notes && <p className="text-xs text-gray-400 mt-1">{record.notes}</p>}
+                    <p className="font-medium text-ink">{record.description}</p>
+                    {record.medications && <p className="text-sm text-muted-3 mt-0.5">💊 {record.medications}</p>}
+                    {record.veterinarian && <p className="text-sm text-muted-3">👨‍⚕️ {record.veterinarian}</p>}
+                    {record.notes && <p className="text-xs text-muted-4 mt-1">{record.notes}</p>}
                     {record.nextDueDate && (
                       <p className="text-xs text-orange-600 font-medium mt-1">
                         🔄 Próxima: {formatDate(record.nextDueDate)}
@@ -216,8 +216,8 @@ export default function SanitarioPage() {
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm text-gray-500">{formatDate(record.date)}</p>
-                    {record.cost != null && <p className="text-sm font-medium text-gray-700 mt-1">{formatCurrency(record.cost)}</p>}
+                    <p className="text-sm text-muted-3">{formatDate(record.date)}</p>
+                    {record.cost != null && <p className="text-sm font-medium text-muted-1 mt-1">{formatCurrency(record.cost)}</p>}
                   </div>
                 </div>
               </div>

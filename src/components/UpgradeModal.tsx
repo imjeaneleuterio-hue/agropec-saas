@@ -32,12 +32,12 @@ export function UpgradeModal({ module, onClose }: Props) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
         <div className="text-5xl mb-3">🔒</div>
-        <h2 className="text-lg font-bold text-gray-900 mb-2">Período de teste encerrado</h2>
-        <p className="text-gray-500 text-sm mb-1">
+        <h2 className="text-lg font-bold text-ink mb-2">Período de teste encerrado</h2>
+        <p className="text-muted-3 text-sm mb-1">
           Você usou as <strong>{MODULE_LIMITS[module] ?? 'usos'} gratuitas</strong> do módulo{' '}
           <strong>{MODULE_NAMES[module] ?? module}</strong>.
         </p>
-        <p className="text-gray-400 text-xs mb-5">
+        <p className="text-muted-4 text-xs mb-5">
           {module === 'ia_voz'
             ? 'Assine o plano Premium para continuar usando sem limites.'
             : 'Assine o plano Pro ou Premium para continuar usando sem limites.'}

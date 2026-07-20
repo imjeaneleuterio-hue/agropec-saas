@@ -65,7 +65,7 @@ export default function NovoAnimalPage() {
         <Link href="/rebanho" className="btn-ghost p-2">←</Link>
         <div>
           <h1 className="page-title">Cadastrar Novo Animal</h1>
-          <p className="text-gray-500 text-sm">Preencha os dados do animal</p>
+          <p className="text-muted-3 text-sm">Preencha os dados do animal</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@ export default function NovoAnimalPage() {
         <div className="card p-5">
           <h2 className="section-title mb-4">Foto do Animal</h2>
           <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+            <div className="w-24 h-24 rounded-xl bg-paper border-2 border-dashed border-sand flex items-center justify-center overflow-hidden">
               {photoPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
@@ -91,7 +91,7 @@ export default function NovoAnimalPage() {
                 📷 Selecionar foto
                 <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
               </label>
-              <p className="text-xs text-gray-500 mt-2">JPG, PNG ou WebP. Máximo 5MB.</p>
+              <p className="text-xs text-muted-3 mt-2">JPG, PNG ou WebP. Máximo 5MB.</p>
             </div>
           </div>
         </div>
