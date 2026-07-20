@@ -46,30 +46,65 @@ export function removeFromQueue(localId: string) {
   saveQueue(getQueue().filter((e) => e.localId !== localId))
 }
 
+// Tempo máximo de espera por tentativa — numa conexão ruim (não totalmente
+// offline) o fetch pode ficar pendurado por muito tempo sem isso; sem um
+// limite, uma tentativa lenta trava a fila inteira.
+const SEND_TIMEOUT_MS = 8000
+
+type SendResult =
+  | { outcome: 'ok' }
+  | { outcome: 'rejected'; error: string }
+  | { outcome: 'retry' }
+
+async function sendOne(entry: QueuedEntry): Promise<SendResult> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS)
+  try {
+    const res = await fetch(entry.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry.payload),
+      signal: controller.signal,
+    })
+    if (res.ok) return { outcome: 'ok' }
+    // erro definitivo do servidor (dado inválido etc.) — reenviar não adianta
+    if (res.status >= 400 && res.status < 500) {
+      const data = await res.json().catch(() => ({}))
+      return { outcome: 'rejected', error: data.error ?? 'Dados rejeitados pelo servidor.' }
+    }
+    return { outcome: 'retry' }
+  } catch {
+    // erro de rede ou timeout — mantém na fila pra tentar de novo depois
+    return { outcome: 'retry' }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export async function flushQueue(): Promise<{ synced: string[]; failed: string[] }> {
   const synced: string[] = []
   const failed: string[] = []
 
   for (const entry of getQueue()) {
-    try {
-      const res = await fetch(entry.endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(entry.payload),
-      })
-      if (res.ok || (res.status >= 400 && res.status < 500)) {
-        // sucesso, ou erro definitivo do servidor (reenviar não vai adiantar)
-        removeFromQueue(entry.localId)
-        synced.push(entry.localId)
-      } else {
-        failed.push(entry.localId)
-      }
-    } catch {
-      // erro de rede — provável ainda offline, mantém na fila e para por aqui
+    const result = await sendOne(entry)
+    if (result.outcome === 'retry') {
       failed.push(entry.localId)
-      break
+      break // provável ainda sem conexão boa — não adianta tentar os próximos agora
     }
+    // 'ok' ou 'rejected' — em ambos os casos não há por que manter na fila
+    removeFromQueue(entry.localId)
+    synced.push(entry.localId)
   }
 
   return { synced, failed }
+}
+
+// Salva a tentativa imediatamente na fila (nunca perde o dado, mesmo se o
+// app fechar no meio do envio) e tenta mandar na hora. Devolve se ficou
+// pendente (ainda na fila), foi confirmado, ou foi rejeitado pelo servidor.
+export async function saveAndSend(entry: Omit<QueuedEntry, 'localId' | 'createdAt'>): Promise<SendResult> {
+  const queued = enqueue(entry)
+  const result = await sendOne(queued)
+  if (result.outcome !== 'retry') removeFromQueue(queued.localId)
+  return result
 }

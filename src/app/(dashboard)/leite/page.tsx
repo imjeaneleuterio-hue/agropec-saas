@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber, formatDate } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { enqueue, getQueue, flushQueue, type QueuedEntry } from '@/lib/offlineQueue'
+import { getQueue, flushQueue, saveAndSend, type QueuedEntry } from '@/lib/offlineQueue'
 
 type DailyRecord = {
   id: string
@@ -189,28 +189,21 @@ export default function LeitePage() {
       notes: dailyForm.notes,
     }
 
-    if (!navigator.onLine) {
-      enqueue({ kind: 'diario', endpoint: '/api/leite/diario', payload })
-      setSuccess(true); setOfflineSuccess(true); setSaving(false)
-      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
-      return
-    }
+    // Salva localmente primeiro (nunca perde o lançamento, mesmo se a
+    // conexão cair ou o app fechar no meio do envio) e tenta mandar na hora.
+    const result = await saveAndSend({ kind: 'diario', endpoint: '/api/leite/diario', payload })
+    setQueue(getQueue())
+    setSaving(false)
 
-    try {
-      const res = await fetch('/api/leite/diario', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Erro ao salvar.'); return }
-      setSuccess(true)
-      setTimeout(() => { setShowModal(false); resetForms(); loadDailyRecords() }, 1200)
-    } catch {
-      enqueue({ kind: 'diario', endpoint: '/api/leite/diario', payload })
-      setSuccess(true); setOfflineSuccess(true)
+    if (result.outcome === 'rejected') { setError(result.error); return }
+
+    setSuccess(true)
+    if (result.outcome === 'retry') {
+      setOfflineSuccess(true)
       setTimeout(() => { setShowModal(false); resetForms() }, 1400)
-    } finally { setSaving(false) }
+    } else {
+      setTimeout(() => { setShowModal(false); resetForms(); loadDailyRecords() }, 1200)
+    }
   }
 
   async function handleSaveAnimal() {
@@ -228,28 +221,19 @@ export default function LeitePage() {
       notes: animalForm.notes,
     }
 
-    if (!navigator.onLine) {
-      enqueue({ kind: 'animal', endpoint: '/api/leite', payload })
-      setSuccess(true); setOfflineSuccess(true); setSaving(false)
-      setTimeout(() => { setShowModal(false); resetForms() }, 1400)
-      return
-    }
+    const result = await saveAndSend({ kind: 'animal', endpoint: '/api/leite', payload })
+    setQueue(getQueue())
+    setSaving(false)
 
-    try {
-      const res = await fetch('/api/leite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Erro ao salvar.'); return }
-      setSuccess(true)
-      setTimeout(() => { setShowModal(false); resetForms(); loadAnimalRecords() }, 1200)
-    } catch {
-      enqueue({ kind: 'animal', endpoint: '/api/leite', payload })
-      setSuccess(true); setOfflineSuccess(true)
+    if (result.outcome === 'rejected') { setError(result.error); return }
+
+    setSuccess(true)
+    if (result.outcome === 'retry') {
+      setOfflineSuccess(true)
       setTimeout(() => { setShowModal(false); resetForms() }, 1400)
-    } finally { setSaving(false) }
+    } else {
+      setTimeout(() => { setShowModal(false); resetForms(); loadAnimalRecords() }, 1200)
+    }
   }
 
   const totalField = tab === 'diario'
