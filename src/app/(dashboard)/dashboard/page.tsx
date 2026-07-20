@@ -46,6 +46,15 @@ export default function DashboardPage() {
   const [newNote, setNewNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [userName, setUserName] = useState<string | null>(null)
+  // Hora local e data de "agora" dependem do fuso do navegador — calcular só
+  // depois de montar evita divergir do horário (UTC) usado na renderização
+  // no servidor, o que quebrava a hidratação do React (erro #418) e travava
+  // a navegação do app inteiro.
+  const [now, setNow] = useState<Date | null>(null)
+
+  useEffect(() => {
+    setNow(new Date())
+  }, [])
 
   useEffect(() => {
     const today = new Date()
@@ -128,14 +137,14 @@ export default function DashboardPage() {
         }} />
         <div className="relative">
           <p className="text-[13px] font-bold text-primary-50 uppercase tracking-widest mb-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>
-            {getSaudacao(userName)}
+            {now ? getSaudacao(userName) : 'Olá'}
           </p>
           <h1 className="font-display italic text-2xl sm:text-[26px] text-white max-w-xl leading-snug" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
             {loading
               ? 'Carregando os números da sua fazenda…'
               : `Sua fazenda produziu ${formatNumber(stats.todayMilkTotal)} litros de leite hoje.`}
           </h1>
-          <p className="text-primary-100/80 text-sm mt-2">{formatDate(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy")}</p>
+          {now && <p className="text-primary-100/80 text-sm mt-2">{formatDate(now, "EEEE, dd 'de' MMMM 'de' yyyy")}</p>}
         </div>
       </div>
 
