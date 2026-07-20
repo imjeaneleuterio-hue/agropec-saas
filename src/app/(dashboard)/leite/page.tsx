@@ -83,25 +83,40 @@ export default function LeitePage() {
   }, [loadDailyRecords, loadAnimalRecords])
 
   // ---- fila de lançamentos offline ----
+  // O evento 'online' do navegador nem sempre dispara em celular quando a
+  // conexão volta com a aba em segundo plano (tela bloqueada, trocou de
+  // app). Por isso a sincronização também é tentada quando a aba volta a
+  // ficar visível e periodicamente enquanto houver itens pendentes — não só
+  // no evento 'online'.
   useEffect(() => {
+    let syncing = false
     function syncQueue() { setQueue(getQueue()) }
     function trySync() {
-      flushQueue().then(() => { syncQueue(); loadDailyRecords(); loadAnimalRecords() })
+      if (syncing || !navigator.onLine || getQueue().length === 0) return
+      syncing = true
+      flushQueue()
+        .then(() => { syncQueue(); loadDailyRecords(); loadAnimalRecords() })
+        .finally(() => { syncing = false })
     }
     function handleOnline() { setOnline(true); trySync() }
     function handleOffline() { setOnline(false) }
+    function handleVisibility() { if (document.visibilityState === 'visible') { setOnline(navigator.onLine); trySync() } }
 
     setOnline(navigator.onLine)
     syncQueue()
-    if (navigator.onLine) trySync()
+    trySync()
 
+    const interval = setInterval(trySync, 20000)
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     window.addEventListener('offline-queue:changed', syncQueue)
+    document.addEventListener('visibilitychange', handleVisibility)
     return () => {
+      clearInterval(interval)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('offline-queue:changed', syncQueue)
+      document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [loadDailyRecords, loadAnimalRecords])
 
