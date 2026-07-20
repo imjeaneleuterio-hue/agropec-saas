@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "br.com.jeleupec.app",
+        "sha256_cert_fingerprints": ["60:F9:A5:CD:6D:7D:2D:7D:C8:68:24:40:A4:BA:93:4E:EE:B8:97:5E:B6:D7:7F:04:73:53:DC:FC:FB:4D:95:F9"]
+      }
+    }]
