@@ -104,6 +104,11 @@ export async function flushQueue(): Promise<{ synced: string[]; failed: string[]
 // pendente (ainda na fila), foi confirmado, ou foi rejeitado pelo servidor.
 export async function saveAndSend(entry: Omit<QueuedEntry, 'localId' | 'createdAt'>): Promise<SendResult> {
   const queued = enqueue(entry)
+  // Já sabendo que está offline, nem tenta — evita esperar o timeout à toa.
+  // Continua tentando de verdade quando o navegador diz que está online,
+  // mesmo que a conexão esteja ruim (navigator.onLine não garante que dá
+  // pra alcançar o servidor, só que tem algum sinal).
+  if (!navigator.onLine) return { outcome: 'retry' }
   const result = await sendOne(queued)
   if (result.outcome !== 'retry') removeFromQueue(queued.localId)
   return result
