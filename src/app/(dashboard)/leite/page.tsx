@@ -171,7 +171,25 @@ export default function LeitePage() {
   })
   const topCows = Object.values(cowMap).sort((a, b) => b.total - a.total).slice(0, 10)
 
-  function resetForms() { setDailyForm(EMPTY_DAILY); setAnimalForm(EMPTY_ANIMAL); setError(''); setSuccess(false); setOfflineSuccess(false) }
+  // O total do dia é sempre a soma de manhã+tarde+noite que está NO
+  // FORMULÁRIO no momento de salvar — não soma com o que já tinha sido
+  // salvo antes (o servidor substitui o dia inteiro). Por isso, ao abrir o
+  // formulário (ou trocar a data), ele já vem preenchido com o que já foi
+  // registrado naquele dia: sem isso, lançar só o período da tarde apagava
+  // a manhã que já estava salva, em vez de somar.
+  function dailyFormFromRecord(dateStr: string) {
+    const existing = allDailyRecords.find((r) => r.date.split('T')[0] === dateStr)
+    if (!existing) return { ...EMPTY_DAILY, date: dateStr }
+    return {
+      date: dateStr,
+      morningLiters: existing.morningLiters ? String(existing.morningLiters) : '',
+      afternoonLiters: existing.afternoonLiters ? String(existing.afternoonLiters) : '',
+      eveningLiters: existing.eveningLiters ? String(existing.eveningLiters) : '',
+      notes: existing.notes ?? '',
+    }
+  }
+
+  function resetForms() { setDailyForm(dailyFormFromRecord(EMPTY_DAILY.date)); setAnimalForm(EMPTY_ANIMAL); setError(''); setSuccess(false); setOfflineSuccess(false) }
 
   async function handleSaveDaily() {
     setError('')
@@ -479,12 +497,12 @@ export default function LeitePage() {
                 {tab === 'diario' ? (
                   <>
                     <h3 className="section-title mb-1">Produção Total do Dia</h3>
-                    <p className="text-xs text-muted-3 mb-4">Informe o total tirado de <strong>todas as vacas</strong> no dia.</p>
+                    <p className="text-xs text-muted-3 mb-4">Informe o total tirado de <strong>todas as vacas</strong> no dia. Se o dia já tiver produção registrada, os valores aparecem preenchidos abaixo — complete só o período que faltava.</p>
                     <div className="space-y-4">
                       <div>
                         <label className="label">Data *</label>
                         <input type="date" className="input-field" value={dailyForm.date}
-                          onChange={(e) => setDailyForm({ ...dailyForm, date: e.target.value })}/>
+                          onChange={(e) => setDailyForm(dailyFormFromRecord(e.target.value))}/>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
                         <div>
