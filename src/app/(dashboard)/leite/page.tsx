@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { formatNumber, formatDate } from '@/lib/utils'
+import { formatNumber, formatDateOnly } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { getQueue, saveAndSend, type QueuedEntry } from '@/lib/offlineQueue'
 
@@ -60,21 +60,35 @@ export default function LeitePage() {
   const [queue, setQueue] = useState<QueuedEntry[]>([])
   const [online, setOnline] = useState(true)
   const [rejectedErrors, setRejectedErrors] = useState<string[]>([])
+  const [loadError, setLoadError] = useState('')
 
   const loadDailyRecords = useCallback(async () => {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
-    const res = await fetch(`/api/leite/diario?startDate=${thirtyDaysAgo.toISOString().split('T')[0]}&limit=60`)
-    const data = await res.json()
-    if (Array.isArray(data.data)) setDailyRecords(data.data)
+    try {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+      const res = await fetch(`/api/leite/diario?startDate=${thirtyDaysAgo.toISOString().split('T')[0]}&limit=60`)
+      const data = await res.json()
+      if (Array.isArray(data.data)) setDailyRecords(data.data)
+      setLoadError('')
+    } catch {
+      // Falha de rede (não totalmente offline, só instável) — a lista
+      // fica com o que já tinha antes, mas o usuário precisa saber que
+      // pode estar desatualizada em vez de assumir que está tudo certo.
+      setLoadError('Não foi possível atualizar os dados. Verifique sua conexão.')
+    }
   }, [])
 
   const loadAnimalRecords = useCallback(async () => {
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
-    const res = await fetch(`/api/leite?startDate=${thirtyDaysAgo.toISOString().split('T')[0]}&limit=500`)
-    const data = await res.json()
-    if (Array.isArray(data.data)) setAnimalRecords(data.data)
+    try {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+      const res = await fetch(`/api/leite?startDate=${thirtyDaysAgo.toISOString().split('T')[0]}&limit=500`)
+      const data = await res.json()
+      if (Array.isArray(data.data)) setAnimalRecords(data.data)
+      setLoadError('')
+    } catch {
+      setLoadError('Não foi possível atualizar os dados. Verifique sua conexão.')
+    }
   }, [])
 
   useEffect(() => {
@@ -257,6 +271,14 @@ export default function LeitePage() {
 
   return (
     <div className="space-y-6">
+      {/* Falha ao atualizar a lista (rede instável, não totalmente offline) */}
+      {loadError && online && (
+        <div className="flex items-center gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
+          <span className="text-lg leading-none">⚠️</span>
+          <span>{loadError}</span>
+        </div>
+      )}
+
       {/* Lançamentos offline que o servidor recusou de vez (ex: sessão expirada) */}
       {rejectedErrors.length > 0 && (
         <div className="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
@@ -394,7 +416,7 @@ export default function LeitePage() {
                   <tr key={r.id} className="hover:bg-paper">
                     <td className="px-4 py-3 font-medium text-ink">
                       <span className="flex items-center gap-2">
-                        {formatDate(r.date)}
+                        {formatDateOnly(r.date)}
                         {r.date.split('T')[0] === todayStr && !r.pending && <span className="badge bg-green-100 text-green-700 text-xs">Hoje</span>}
                         {r.pending && <span className="badge bg-alert-bg text-alert-text text-xs">🕓 Pendente de envio</span>}
                       </span>

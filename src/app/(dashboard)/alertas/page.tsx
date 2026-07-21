@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { formatDate, formatRelative, daysFromToday, cn } from '@/lib/utils'
+import { formatDateOnly, formatRelative, daysFromToday, cn } from '@/lib/utils'
 import type { Alert } from '@/types'
 
 const PRIORITY_CONFIG = {
@@ -154,7 +154,7 @@ export default function AlertasPage() {
                         const color = days < 0 ? 'text-red-600 font-semibold' : days <= 2 ? 'text-orange-600 font-semibold' : 'text-muted-2'
                         return (
                           <span>
-                            📅 {formatDate(alert.dueDate)}{' '}
+                            📅 {formatDateOnly(alert.dueDate)}{' '}
                             <span className={color}>({urgency})</span>
                           </span>
                         )

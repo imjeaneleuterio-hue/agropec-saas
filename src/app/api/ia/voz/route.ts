@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
 import { addDays } from 'date-fns'
 
-const hoje = () => new Date().toISOString().split('T')[0]
+const hoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
 const TIPO_LABELS: Record<string, string> = {
   leite: 'Produção de leite',
@@ -38,14 +38,22 @@ export async function POST(request: Request) {
       const litros = Number(dados.litros ?? 0)
       if (litros <= 0) return NextResponse.json({ error: 'Quantidade de litros inválida.' }, { status: 422 })
       const dateObj = new Date(dataRegistro)
+      // Soma ao que já existe no dia em vez de substituir — um segundo
+      // comando de voz no mesmo dia (ex: "mais 50 litros à tarde") não pode
+      // apagar o que já tinha sido registrado antes, seja por voz ou manual.
+      const existing = await prisma.dailyMilkTotal.findUnique({ where: { farmId_date: { farmId, date: dateObj } } })
+      const morningLiters = (existing?.morningLiters ?? 0) + litros
+      const afternoonLiters = existing?.afternoonLiters ?? 0
+      const eveningLiters = existing?.eveningLiters ?? 0
+      const totalLiters = morningLiters + afternoonLiters + eveningLiters
       await prisma.dailyMilkTotal.upsert({
         where: { farmId_date: { farmId, date: dateObj } },
-        update: { morningLiters: litros, afternoonLiters: 0, eveningLiters: 0, totalLiters: litros },
-        create: { farmId, date: dateObj, morningLiters: litros, afternoonLiters: 0, eveningLiters: 0, totalLiters: litros },
+        update: { morningLiters, afternoonLiters, eveningLiters, totalLiters },
+        create: { farmId, date: dateObj, morningLiters, afternoonLiters, eveningLiters, totalLiters },
       })
       return NextResponse.json({
         sucesso: true,
-        confirmacao: `Produção total de ${litros}L registrada para ${new Date(dataRegistro).toLocaleDateString('pt-BR')}.`,
+        confirmacao: `${litros}L somados à produção de ${new Date(dataRegistro).toLocaleDateString('pt-BR')} — total do dia agora é ${totalLiters}L.`,
         animal: { nome: null, tag: '' },
         tipo,
       })

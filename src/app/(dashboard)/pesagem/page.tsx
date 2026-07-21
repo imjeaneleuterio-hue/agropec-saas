@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatDate, formatNumber, cn } from '@/lib/utils'
+import { formatDateOnly, formatNumber, cn, monthKeyOf, currentMonthKey } from '@/lib/utils'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar,
@@ -28,7 +28,7 @@ export default function PesagemPage() {
   const [form, setForm] = useState({
     animalId: '',
     weight: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'),
     notes: '',
   })
 
@@ -72,17 +72,13 @@ export default function PesagemPage() {
       setError(data.error ?? 'Erro ao salvar')
     } else {
       setShowModal(false)
-      setForm({ animalId: '', weight: '', date: new Date().toISOString().split('T')[0], notes: '' })
+      setForm({ animalId: '', weight: '', date: new Date().toLocaleDateString('en-CA'), notes: '' })
       load()
     }
     setSaving(false)
   }
 
-  const now = new Date()
-  const monthRecords = records.filter((r) => {
-    const d = new Date(r.date)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  })
+  const monthRecords = records.filter((r) => monthKeyOf(r.date) === currentMonthKey())
 
   const avgWeight = records.length > 0
     ? records.reduce((s, r) => s + r.weight, 0) / records.length
@@ -96,7 +92,7 @@ export default function PesagemPage() {
 
   // Chart: last 10 records grouped by date (avg weight)
   const byDate = records.slice(0, 30).reduce<Record<string, number[]>>((acc, r) => {
-    const key = formatDate(r.date, 'dd/MM')
+    const key = formatDateOnly(r.date, 'dd/MM')
     acc[key] = acc[key] ?? []
     acc[key].push(r.weight)
     return acc
@@ -227,7 +223,7 @@ export default function PesagemPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-primary-700">{formatNumber(r.weight, 0)} kg</td>
-                    <td className="px-4 py-3 text-right text-muted-3 hidden sm:table-cell">{formatDate(r.date)}</td>
+                    <td className="px-4 py-3 text-right text-muted-3 hidden sm:table-cell">{formatDateOnly(r.date)}</td>
                     <td className="px-4 py-3 text-muted-3 hidden md:table-cell">{r.notes ?? '—'}</td>
                   </tr>
                 ))}

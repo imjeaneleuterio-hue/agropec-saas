@@ -12,12 +12,12 @@ export async function POST(request: Request) {
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'ia')) {
+    const withinTrial = !canAccessModule(plan, 'ia')
+    if (withinTrial) {
       const trial = await checkTrialAccess(session.userId, 'ia')
       if (!trial.allowed) {
         return NextResponse.json({ error: `Você usou suas ${trial.limit} perguntas gratuitas de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'ia', limit: trial.limit }, { status: 403 })
       }
-      await incrementTrialUsage(session.userId, 'ia')
     }
 
     const { animalId } = await request.json()
@@ -36,6 +36,11 @@ export async function POST(request: Request) {
     })
 
     if (!animal) return NextResponse.json({ error: 'Animal não encontrado' }, { status: 404 })
+
+    // Só consome o crédito de teste depois de validar que o pedido é
+    // atendível — senão um animalId inválido gastava uma pergunta grátis
+    // sem devolver nada em troca.
+    if (withinTrial) await incrementTrialUsage(session.userId, 'ia')
 
     const hoje = new Date()
     const nascimento = animal.birthDate

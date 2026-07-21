@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { formatDate, formatCurrency, LABELS, getStatusColor, FINANCIAL_CATEGORIES_INCOME, FINANCIAL_CATEGORIES_EXPENSE, cn } from '@/lib/utils'
+import { formatDateOnly, formatCurrency, LABELS, getStatusColor, FINANCIAL_CATEGORIES_INCOME, FINANCIAL_CATEGORIES_EXPENSE, cn, monthKeyOf, currentMonthKey } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
 import { TrialBanner } from '@/components/TrialBanner'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
@@ -10,7 +10,7 @@ import type { FinancialRecord } from '@/types'
 const PIE_COLORS = ['#16a34a', '#22c55e', '#86efac', '#bbf7d0', '#dcfce7', '#4ade80', '#15803d']
 
 const EMPTY_FORM = {
-  category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], paymentStatus: 'PAID', notes: '',
+  category: '', description: '', amount: '', date: new Date().toLocaleDateString('en-CA'), paymentStatus: 'PAID', notes: '',
 }
 
 export default function FinanceiroPage() {
@@ -96,10 +96,8 @@ export default function FinanceiroPage() {
   })
 
   const now = new Date()
-  const monthRecords = records.filter((r) => {
-    const d = new Date(r.date)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  })
+  const thisMonthKey = currentMonthKey()
+  const monthRecords = records.filter((r) => monthKeyOf(r.date) === thisMonthKey)
   const monthIncome = monthRecords.filter((r) => r.type === 'INCOME').reduce((s, r) => s + r.amount, 0)
   const monthExpense = monthRecords.filter((r) => r.type === 'EXPENSE').reduce((s, r) => s + r.amount, 0)
   const balance = monthIncome - monthExpense
@@ -121,9 +119,8 @@ export default function FinanceiroPage() {
     const d = new Date(now)
     d.setMonth(d.getMonth() - i)
     const label = d.toLocaleDateString('pt-BR', { month: 'short' })
-    const m = d.getMonth()
-    const y = d.getFullYear()
-    const mr = records.filter((r) => { const rd = new Date(r.date); return rd.getMonth() === m && rd.getFullYear() === y })
+    const key = d.toLocaleDateString('en-CA').slice(0, 7)
+    const mr = records.filter((r) => monthKeyOf(r.date) === key)
     monthlyData.push({
       mes: label,
       receita: mr.filter((r) => r.type === 'INCOME').reduce((s, r) => s + r.amount, 0),
@@ -269,7 +266,7 @@ export default function FinanceiroPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-ink truncate">{record.description}</p>
-                  <p className="text-xs text-muted-3">{record.category} · {formatDate(record.date)}</p>
+                  <p className="text-xs text-muted-3">{record.category} · {formatDateOnly(record.date)}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className={cn('font-bold', record.type === 'INCOME' ? 'text-green-700' : 'text-red-600')}>

@@ -6,9 +6,15 @@ import { getActiveFarmId } from '@/lib/farm'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? '' })
 
-const hoje = () => new Date().toISOString().split('T')[0]
+// Fuso fixo do Brasil (o público do app é só produtor rural brasileiro) —
+// não dá pra usar a hora local do servidor (UTC na Vercel), senão "hoje"
+// fica errado à noite. E precisa ser calculado a cada request: como fica
+// embutido direto no texto do prompt, se fosse uma constante de módulo
+// ficaria travado na data do último cold start da função serverless.
+const hoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
-const SYSTEM_PROMPT = `Você é um assistente que interpreta comandos de voz de produtores rurais brasileiros.
+function buildSystemPrompt() {
+  return `Você é um assistente que interpreta comandos de voz de produtores rurais brasileiros.
 
 Data de hoje: ${hoje()}
 
@@ -45,6 +51,7 @@ Mapeamento reprodutivo:
 - "tratamento" / "antibiótico" = TREATMENT
 
 Retorne somente JSON.`
+}
 
 const TIPO_LABELS: Record<string, string> = {
   leite_total: 'Produção Total do Rebanho',
@@ -68,12 +75,12 @@ export async function POST(request: Request) {
     if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'ia_voz')) {
+    const withinTrial = !canAccessModule(plan, 'ia_voz')
+    if (withinTrial) {
       const trial = await checkTrialAccess(session.userId, 'ia_voz')
       if (!trial.allowed) {
         return NextResponse.json({ error: `Você usou seus ${trial.limit} comandos de voz gratuitos de teste. Assine o plano Premium para continuar.`, upgrade: true, trialExhausted: true, module: 'ia_voz', limit: trial.limit }, { status: 403 })
       }
-      await incrementTrialUsage(session.userId, 'ia_voz')
     }
 
     const { texto } = await request.json()
@@ -85,10 +92,14 @@ export async function POST(request: Request) {
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
 
+    // Só consome o crédito de teste depois de validar o pedido — evita
+    // gastar uma tentativa grátis num texto vazio ou usuário sem fazenda.
+    if (withinTrial) await incrementTrialUsage(session.userId, 'ia_voz')
+
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt() },
         { role: 'user', content: texto },
       ],
       response_format: { type: 'json_object' },

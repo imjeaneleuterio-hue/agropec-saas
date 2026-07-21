@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { formatCurrency, formatNumber, formatDate } from '@/lib/utils'
+import { formatCurrency, formatNumber, formatDate, formatDateOnly, daysFromToday } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import Link from 'next/link'
 import { getQueue, type QueuedEntry } from '@/lib/offlineQueue'
@@ -405,9 +405,6 @@ function MiniCard({ label, value, icon: iconProp, isText }: { label: string; val
 }
 
 function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
   return (
     <div className="card p-5">
       <div className="flex justify-between items-center mb-4">
@@ -419,9 +416,7 @@ function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {items.map((item) => {
-          const due = new Date(item.dueDate)
-          due.setHours(0, 0, 0, 0)
-          const days = Math.round((due.getTime() - today.getTime()) / 86400000)
+          const days = daysFromToday(item.dueDate)
           const animalName = item.title.replace('Previsão de Cio — ', '')
           const urgency = days === 0 ? 'hoje!' : days === 1 ? 'amanhã' : `em ${days} dias`
           const color = days <= 1 ? 'border-pink-300 bg-pink-50' : days <= 5 ? 'border-orange-200 bg-orange-50' : 'border-sand bg-paper'
@@ -432,7 +427,7 @@ function EstrusCard({ items }: { items: UpcomingEstrus[] }) {
               <div className="min-w-0">
                 <p className="font-semibold text-ink text-sm truncate">{animalName}</p>
                 <p className={`text-xs font-medium ${textColor}`}>
-                  {formatDate(item.dueDate)} · {urgency}
+                  {formatDateOnly(item.dueDate)} · {urgency}
                 </p>
                 <p className="text-xs text-muted-4 truncate">{item.description.split('—')[0].trim()}</p>
               </div>

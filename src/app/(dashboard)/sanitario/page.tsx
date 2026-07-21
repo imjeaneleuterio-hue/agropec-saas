@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatDate, LABELS, formatCurrency, daysFromToday } from '@/lib/utils'
+import { formatDateOnly, LABELS, formatCurrency, daysFromToday, monthKeyOf, currentMonthKey } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
 import { TrialBanner } from '@/components/TrialBanner'
 import type { HealthRecord, Animal } from '@/types'
@@ -21,7 +21,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 const EMPTY_FORM = {
   animalId: '',
   type: '',
-  date: new Date().toISOString().split('T')[0],
+  date: new Date().toLocaleDateString('en-CA'),
   description: '',
   veterinarian: '',
   cost: '',
@@ -100,10 +100,7 @@ export default function SanitarioPage() {
   const filtered = filterType === 'ALL' ? records : records.filter((r) => r.type === filterType)
 
   const now = new Date()
-  const monthRecords = records.filter((r) => {
-    const d = new Date(r.date)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  })
+  const monthRecords = records.filter((r) => monthKeyOf(r.date) === currentMonthKey())
 
   const vaccinations = monthRecords.filter((r) => r.type === 'VACCINATION').length
   const treatments = monthRecords.filter((r) => r.type === 'TREATMENT').length
@@ -163,7 +160,7 @@ export default function SanitarioPage() {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-ink">{formatDate(item.nextDueDate!)}</p>
+                    <p className="text-sm font-semibold text-ink">{formatDateOnly(item.nextDueDate!)}</p>
                     <p className="text-xs text-muted-3">em {daysLeft} dia{daysLeft !== 1 ? 's' : ''}</p>
                   </div>
                 </div>
@@ -211,12 +208,12 @@ export default function SanitarioPage() {
                     {record.notes && <p className="text-xs text-muted-4 mt-1">{record.notes}</p>}
                     {record.nextDueDate && (
                       <p className="text-xs text-orange-600 font-medium mt-1">
-                        🔄 Próxima: {formatDate(record.nextDueDate)}
+                        🔄 Próxima: {formatDateOnly(record.nextDueDate)}
                       </p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm text-muted-3">{formatDate(record.date)}</p>
+                    <p className="text-sm text-muted-3">{formatDateOnly(record.date)}</p>
                     {record.cost != null && <p className="text-sm font-medium text-muted-1 mt-1">{formatCurrency(record.cost)}</p>}
                   </div>
                 </div>

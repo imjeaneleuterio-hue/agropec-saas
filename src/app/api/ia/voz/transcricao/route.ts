@@ -6,9 +6,13 @@ import { getActiveFarmId } from '@/lib/farm'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? '' })
 
-const hoje = () => new Date().toISOString().split('T')[0]
+// Fuso fixo do Brasil — não pode usar a hora local do servidor (UTC na
+// Vercel), senão "hoje" fica errado à noite. Calculado por request (não
+// como constante de módulo), senão fica travado na data do cold start.
+const hoje = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
-const SYSTEM_PROMPT = `Você é um assistente que interpreta comandos de voz de produtores rurais brasileiros.
+function buildSystemPrompt() {
+  return `Você é um assistente que interpreta comandos de voz de produtores rurais brasileiros.
 
 Data de hoje: ${hoje()}
 
@@ -30,6 +34,7 @@ Use "leite_total" quando falar da produção do rebanho todo sem mencionar anima
 Use "leite" apenas quando mencionar um animal específico (brinco ou nome).
 Mapeamento: "cio"=ESTRUS, "inseminada/IA"=INSEMINATION, "monta"=NATURAL_MATING, "prenha"=PREGNANCY_CHECK_POSITIVE, "vazia"=PREGNANCY_CHECK_NEGATIVE, "pariu/parto"=CALVING, "desmamou"=WEANING, "secou"=DRY_OFF, "aborto"=ABORTION, "vacina"=VACCINATION, "vermifugação/carrapaticida"=PARASITE_CONTROL, "tratamento"=TREATMENT.
 Retorne somente JSON.`
+}
 
 const TIPO_LABELS: Record<string, string> = {
   leite_total: 'Produção Total do Rebanho',
@@ -58,7 +63,8 @@ export async function POST(request: Request) {
 
     const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
     const plan = await getUserPlan(session.userId)
-    if (!canAccessModule(plan, 'ia_voz')) {
+    const withinTrial = !canAccessModule(plan, 'ia_voz')
+    if (withinTrial) {
       const trial = await checkTrialAccess(session.userId, 'ia_voz')
       if (!trial.allowed) {
         return NextResponse.json({
@@ -66,7 +72,6 @@ export async function POST(request: Request) {
           upgrade: true, trialExhausted: true, module: 'ia_voz', limit: trial.limit,
         }, { status: 403 })
       }
-      await incrementTrialUsage(session.userId, 'ia_voz')
     }
 
     const formData = await request.formData()
@@ -75,6 +80,10 @@ export async function POST(request: Request) {
 
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ error: 'Fazenda não encontrada' }, { status: 404 })
+
+    // Só consome o crédito de teste depois de validar que tem áudio e
+    // fazenda — evita gastar uma tentativa grátis num pedido incompleto.
+    if (withinTrial) await incrementTrialUsage(session.userId, 'ia_voz')
 
     // Transcrição e busca de animais em paralelo
     const [transcription, todosAnimais] = await Promise.all([
@@ -99,7 +108,7 @@ export async function POST(request: Request) {
     const completion = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt() },
         { role: 'user', content: texto },
       ],
       response_format: { type: 'json_object' },

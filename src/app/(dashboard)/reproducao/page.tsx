@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatDate, LABELS, cn, daysFromToday } from '@/lib/utils'
+import { formatDateOnly, LABELS, cn, daysFromToday } from '@/lib/utils'
 import { handleTrialResponse } from '@/lib/trialEvent'
 import { TrialBanner } from '@/components/TrialBanner'
 import type { ReproductiveEvent, Animal } from '@/types'
@@ -27,7 +27,7 @@ const EVENT_ICONS: Record<string, string> = {
 const EMPTY_FORM = {
   animalId: '',
   type: '',
-  date: new Date().toISOString().split('T')[0],
+  date: new Date().toLocaleDateString('en-CA'),
   bullName: '',
   expectedCalving: '',
   result: '',
@@ -225,12 +225,12 @@ export default function ReproducaoPage() {
                       {e.animal?.name ?? 'Animal'} <span className="text-muted-3 text-sm">#{e.animal?.tag}</span>
                     </p>
                     <p className="text-sm text-muted-2">
-                      {e.type === 'INSEMINATION' ? 'Inseminada' : 'Montada'} em {formatDate(e.date)} · <span className="font-medium">{dias} dias</span>
+                      {e.type === 'INSEMINATION' ? 'Inseminada' : 'Montada'} em {formatDateOnly(e.date)} · <span className="font-medium">{dias} dias</span>
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-3">Parto estimado</p>
-                    <p className="font-semibold text-ink">{formatDate(partoPrevisto)}</p>
+                    <p className="font-semibold text-ink">{formatDateOnly(partoPrevisto)}</p>
                   </div>
                 </div>
               )
@@ -254,10 +254,10 @@ export default function ReproducaoPage() {
                     <p className="font-medium text-ink">
                       {e.animal?.name ?? 'Animal'} <span className="text-muted-3 text-sm">#{e.animal?.tag}</span>
                     </p>
-                    <p className="text-sm text-muted-2">Inseminada em {formatDate(e.date)}</p>
+                    <p className="text-sm text-muted-2">Inseminada em {formatDateOnly(e.date)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-ink">{formatDate(e.expectedCalving!)}</p>
+                    <p className="font-semibold text-ink">{formatDateOnly(e.expectedCalving!)}</p>
                     <p className={cn('text-xs font-medium', daysLeft <= 15 ? 'text-red-600' : daysLeft <= 30 ? 'text-orange-600' : 'text-muted-3')}>
                       {daysLeft <= 0 ? 'Hoje!' : `Em ${daysLeft} dias`}
                     </p>
@@ -285,7 +285,7 @@ export default function ReproducaoPage() {
                     <p className="text-sm text-muted-3">{item.description.split('—')[0].trim()}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-ink">{formatDate(item.dueDate)}</p>
+                    <p className="font-semibold text-ink">{formatDateOnly(item.dueDate)}</p>
                     <p className={cn('text-xs font-medium',
                       daysLeft <= 0 ? 'text-pink-700 font-bold' :
                       daysLeft <= 2 ? 'text-pink-600' :
@@ -338,10 +338,10 @@ export default function ReproducaoPage() {
                   {event.result && <p className="text-sm text-muted-2 mt-0.5">{event.result}</p>}
                   {event.notes && <p className="text-xs text-muted-4 mt-0.5">{event.notes}</p>}
                   {event.expectedCalving && (
-                    <p className="text-xs text-green-600 font-medium mt-0.5">Parto previsto: {formatDate(event.expectedCalving)}</p>
+                    <p className="text-xs text-green-600 font-medium mt-0.5">Parto previsto: {formatDateOnly(event.expectedCalving)}</p>
                   )}
                 </div>
-                <p className="text-xs text-muted-3 whitespace-nowrap">{formatDate(event.date)}</p>
+                <p className="text-xs text-muted-3 whitespace-nowrap">{formatDateOnly(event.date)}</p>
               </div>
             ))}
           </div>

@@ -15,16 +15,13 @@ export async function GET(request: Request) {
     const endDate = searchParams.get('endDate')
     const limit = parseInt(searchParams.get('limit') ?? '30')
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      include: { farms: { include: { animals: { select: { id: true } } } } },
-    })
-    const animalIds = user?.farms.flatMap((f) => f.animals.map((a) => a.id)) ?? []
-    const filteredId = animalId && animalIds.includes(animalId) ? animalId : null
+    const farmId = await getActiveFarmId(session.userId)
+    if (!farmId) return NextResponse.json({ data: [] })
 
     const records = await prisma.milkProduction.findMany({
       where: {
-        animalId: filteredId ? filteredId : { in: animalIds },
+        animal: { farmId },
+        ...(animalId && { animalId }),
         ...(startDate && { date: { gte: new Date(startDate) } }),
         ...(endDate && { date: { lte: new Date(endDate) } }),
       },

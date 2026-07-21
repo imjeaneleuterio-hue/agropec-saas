@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { formatDate, calcAge, getStatusColor, LABELS, formatCurrency, formatNumber } from '@/lib/utils'
+import { formatDate, formatDateOnly, calcAge, getStatusColor, LABELS, formatCurrency, formatNumber } from '@/lib/utils'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { Animal, WeightRecord, MilkProduction, HealthRecord, ReproductiveEvent } from '@/types'
 
@@ -196,7 +196,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
             <InfoItem label="Sexo" value={LABELS.sex[animal.sex]} />
             <InfoItem label="Tipo" value={LABELS.animalType[animal.type]} />
             {animal.birthDate && <InfoItem label="Idade" value={calcAge(animal.birthDate)} />}
-            {animal.birthDate && <InfoItem label="Nascimento" value={formatDate(animal.birthDate)} />}
+            {animal.birthDate && <InfoItem label="Nascimento" value={formatDateOnly(animal.birthDate)} />}
             {lastWeight && <InfoItem label="Peso Atual" value={`${lastWeight.weight} kg`} />}
             {animal.purchasePrice && <InfoItem label="Valor Compra" value={formatCurrency(animal.purchasePrice)} />}
           </div>
@@ -234,7 +234,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
             <div className="card p-5">
               <h3 className="section-title mb-4">Últimas Pesagens</h3>
               <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={[...animal.weightRecords].reverse().slice(-10).map((w) => ({ ...w, date: formatDate(w.date, 'dd/MM') }))}>
+                <LineChart data={[...animal.weightRecords].reverse().slice(-10).map((w) => ({ ...w, date: formatDateOnly(w.date, 'dd/MM') }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} domain={['auto', 'auto']} />
@@ -248,7 +248,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
             <div className="card p-5">
               <h3 className="section-title mb-4">Produção Recente (L/dia)</h3>
               <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={[...animal.milkProductions].reverse().slice(-10).map((m) => ({ ...m, date: formatDate(m.date, 'dd/MM') }))}>
+                <LineChart data={[...animal.milkProductions].reverse().slice(-10).map((m) => ({ ...m, date: formatDateOnly(m.date, 'dd/MM') }))}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#efe9db" />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} domain={['auto', 'auto']} />
@@ -282,7 +282,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
               <tbody className="divide-y divide-paper">
                 {animal.milkProductions.map((m) => (
                   <tr key={m.id} className="hover:bg-paper">
-                    <td className="px-4 py-3">{formatDate(m.date)}</td>
+                    <td className="px-4 py-3">{formatDateOnly(m.date)}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(m.morningLiters ?? 0)}</td>
                     <td className="px-4 py-3 text-right">{formatNumber(m.afternoonLiters ?? 0)}</td>
                     <td className="px-4 py-3 text-right font-semibold text-primary-700">{formatNumber(m.totalLiters)}</td>
@@ -311,7 +311,7 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
               <tbody className="divide-y divide-paper">
                 {animal.weightRecords.map((w) => (
                   <tr key={w.id} className="hover:bg-paper">
-                    <td className="px-4 py-3">{formatDate(w.date)}</td>
+                    <td className="px-4 py-3">{formatDateOnly(w.date)}</td>
                     <td className="px-4 py-3 text-right font-semibold">{w.weight} kg</td>
                     <td className="px-4 py-3 text-muted-3 hidden md:table-cell">{w.notes ?? '—'}</td>
                   </tr>
@@ -336,10 +336,10 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                   {h.medications && <p className="text-sm text-muted-3">Medicamentos: {h.medications}</p>}
                 </div>
                 <div className="text-right text-sm">
-                  <p className="font-medium text-muted-1">{formatDate(h.date)}</p>
+                  <p className="font-medium text-muted-1">{formatDateOnly(h.date)}</p>
                   {h.cost && <p className="text-muted-3">{formatCurrency(h.cost)}</p>}
                   {h.nextDueDate && (
-                    <p className="text-orange-600 text-xs mt-1">Próximo: {formatDate(h.nextDueDate)}</p>
+                    <p className="text-orange-600 text-xs mt-1">Próximo: {formatDateOnly(h.nextDueDate)}</p>
                   )}
                 </div>
               </div>
@@ -362,11 +362,11 @@ export default function AnimalProfilePage({ params }: { params: Promise<{ id: st
                 {r.result && <p className="text-sm text-muted-3">{r.result}</p>}
                 {r.expectedCalving && (
                   <p className="text-sm text-green-700 font-medium">
-                    Parto previsto: {formatDate(r.expectedCalving)}
+                    Parto previsto: {formatDateOnly(r.expectedCalving)}
                   </p>
                 )}
               </div>
-              <p className="text-sm text-muted-3">{formatDate(r.date)}</p>
+              <p className="text-sm text-muted-3">{formatDateOnly(r.date)}</p>
             </div>
           ))}
         </div>

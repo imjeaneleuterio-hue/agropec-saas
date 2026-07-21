@@ -12,6 +12,23 @@ export function formatDate(date: string | Date, pattern = 'dd/MM/yyyy'): string 
   return format(d, pattern, { locale: ptBR })
 }
 
+// Campos "só de data" (pesagem, sanitário, financeiro, leite, nascimento...)
+// vêm de um <input type="date"> e são salvos como meia-noite UTC. Formatar
+// isso no fuso local (o que formatDate faz, corretamente, pra timestamps de
+// verdade como createdAt) mostra o dia ERRADO pra quem está no Brasil
+// (UTC-3): meia-noite UTC já é o dia anterior às 21h local. Aqui a gente
+// extrai só o "YYYY-MM-DD" gravado e monta a data ao meio-dia local, que
+// sempre formata no dia certo, não importa o fuso de quem está vendo.
+function parseDateOnly(date: string | Date): Date {
+  const raw = typeof date === 'string' ? date : date.toISOString()
+  const datePart = raw.split('T')[0] // 'YYYY-MM-DD'
+  return new Date(`${datePart}T12:00:00`)
+}
+
+export function formatDateOnly(date: string | Date, pattern = 'dd/MM/yyyy'): string {
+  return format(parseDateOnly(date), pattern, { locale: ptBR })
+}
+
 export function formatDateTime(date: string | Date): string {
   const d = typeof date === 'string' ? parseISO(date) : date
   return format(d, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
@@ -26,12 +43,24 @@ export function formatRelative(date: string | Date): string {
 // SQLite stores dates as UTC midnight; Brazil is UTC-3, which would shift
 // the day if we compared raw timestamps.
 export function daysFromToday(date: string | Date): number {
-  const raw = typeof date === 'string' ? date : date.toISOString()
-  const datePart = raw.split('T')[0] // 'YYYY-MM-DD'
   const todayPart = new Date().toLocaleDateString('en-CA') // 'YYYY-MM-DD' local
-  const d = new Date(datePart + 'T12:00:00')
-  const t = new Date(todayPart + 'T12:00:00')
+  const d = parseDateOnly(date)
+  const t = new Date(`${todayPart}T12:00:00`)
   return Math.round((d.getTime() - t.getTime()) / 86400000)
+}
+
+// 'YYYY-MM' do dia gravado, sem passar por conversão de fuso — usado pra
+// filtrar/agrupar por mês (ex: "gastos deste mês") sem que um lançamento no
+// dia 1º caia no mês anterior pra quem está no Brasil.
+export function monthKeyOf(date: string | Date): string {
+  const raw = typeof date === 'string' ? date : date.toISOString()
+  return raw.split('T')[0].slice(0, 7)
+}
+
+// 'YYYY-MM' do mês local de AGORA (não confundir com monthKeyOf, que é pra
+// datas já gravadas — aqui é hora real, então precisa do fuso do navegador).
+export function currentMonthKey(): string {
+  return new Date().toLocaleDateString('en-CA').slice(0, 7)
 }
 
 export function formatCurrency(value: number): string {
@@ -49,7 +78,7 @@ export function formatNumber(value: number, decimals = 1): string {
 }
 
 export function calcAge(birthDate: string | Date): string {
-  const d = typeof birthDate === 'string' ? parseISO(birthDate) : birthDate
+  const d = parseDateOnly(birthDate)
   const months = differenceInMonths(new Date(), d)
   if (months < 1) {
     const days = differenceInDays(new Date(), d)
@@ -61,7 +90,7 @@ export function calcAge(birthDate: string | Date): string {
 }
 
 export function calcAgeInMonths(birthDate: string | Date): number {
-  const d = typeof birthDate === 'string' ? parseISO(birthDate) : birthDate
+  const d = parseDateOnly(birthDate)
   return differenceInMonths(new Date(), d)
 }
 

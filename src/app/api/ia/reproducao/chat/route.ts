@@ -15,6 +15,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Mensagem muito longa.' }, { status: 400 })
     }
 
+    const { getUserPlan, canAccessModule, checkTrialAccess, incrementTrialUsage } = await import('@/lib/plans')
+    const plan = await getUserPlan(session.userId)
+    if (!canAccessModule(plan, 'ia')) {
+      const trial = await checkTrialAccess(session.userId, 'ia')
+      if (!trial.allowed) {
+        return NextResponse.json({ error: `Você usou suas ${trial.limit} perguntas gratuitas de teste. Assine para continuar.`, upgrade: true, trialExhausted: true, module: 'ia', limit: trial.limit }, { status: 403 })
+      }
+      await incrementTrialUsage(session.userId, 'ia')
+    }
+
     const contextoSanitizado = typeof contextoAnimal === 'string'
       ? contextoAnimal.slice(0, 5000)
       : ''
