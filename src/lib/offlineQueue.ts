@@ -38,7 +38,16 @@ export function enqueue(entry: Omit<QueuedEntry, 'localId' | 'createdAt'>): Queu
     localId: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
   }
-  saveQueue([...getQueue(), full])
+  const current = getQueue()
+  // Um lançamento "diario" representa o dia INTEIRO (o formulário já vem
+  // pré-preenchido com o que existia, então o novo envio já é o total
+  // certo). Se já existe um pendente pra mesma data, ele substitui o
+  // antigo na fila em vez de empilhar os dois — senão os dois eram
+  // somados na tela como se fossem dias diferentes, dobrando o total.
+  const filtered = entry.kind === 'diario'
+    ? current.filter((e) => !(e.kind === 'diario' && e.payload.date === entry.payload.date))
+    : current
+  saveQueue([...filtered, full])
   return full
 }
 
