@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { formatCurrency, formatNumber, formatDate } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import Link from 'next/link'
+import { getQueue, type QueuedEntry } from '@/lib/offlineQueue'
 import type { DashboardStats, Alert, UpcomingEstrus } from '@/types'
 import {
   Tag, Droplets, Bell, TrendingUp, CreditCard,
@@ -28,7 +29,7 @@ const PRIORITY_LABELS: Record<string, string> = {
   CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Médio', LOW: 'Baixo',
 }
 
-type DayMilk = { day: string; liters: number }
+type DayMilk = { day: string; dateStr: string; liters: number }
 
 function getSaudacao(nome?: string | null): string {
   const h = new Date().getHours()
@@ -51,12 +52,13 @@ export default function DashboardPage() {
   // no servidor, o que quebrava a hidratação do React (erro #418) e travava
   // a navegação do app inteiro.
   const [now, setNow] = useState<Date | null>(null)
+  const [queue, setQueue] = useState<QueuedEntry[]>([])
 
   useEffect(() => {
     setNow(new Date())
   }, [])
 
-  useEffect(() => {
+  const loadDashboard = useCallback(() => {
     const today = new Date()
     const sevenDaysAgo = new Date(today)
     sevenDaysAgo.setDate(today.getDate() - 6)
@@ -94,12 +96,42 @@ export default function DashboardPage() {
           if (dateStr in totals) totals[dateStr] = r.totalLiters ?? 0
         })
       }
-      setMilkChart(days.map(({ dateStr, label }) => ({ day: label, liters: totals[dateStr] })))
+      setMilkChart(days.map(({ dateStr, label }) => ({ day: label, dateStr, liters: totals[dateStr] })))
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => { loadDashboard() }, [loadDashboard])
+
+  // Lançamentos de leite feitos sem internet (em qualquer tela) ficam
+  // guardados no aparelho até sincronizar — sem isso, a produção de hoje
+  // lançada offline nunca aparecia aqui, só na tela de Leite.
+  useEffect(() => {
+    setQueue(getQueue())
+    function handleQueueChanged() { setQueue(getQueue()); loadDashboard() }
+    window.addEventListener('offline-queue:changed', handleQueueChanged)
+    return () => window.removeEventListener('offline-queue:changed', handleQueueChanged)
+  }, [loadDashboard])
+
+  const pendingDiarioByDate = queue
+    .filter((q) => q.kind === 'diario')
+    .reduce<Record<string, number>>((acc, q) => {
+      const morning = Number(q.payload.morningLiters) || 0
+      const afternoon = Number(q.payload.afternoonLiters) || 0
+      const evening = Number(q.payload.eveningLiters) || 0
+      const dateStr = String(q.payload.date ?? '').split('T')[0]
+      if (dateStr) acc[dateStr] = morning + afternoon + evening
+      return acc
+    }, {})
+
+  const displayedMilkChart = milkChart.map((d) =>
+    d.dateStr in pendingDiarioByDate ? { ...d, liters: pendingDiarioByDate[d.dateStr] } : d
+  )
+  const todayStr = new Date().toLocaleDateString('en-CA')
+  const todayChartEntry = displayedMilkChart.find((d) => d.dateStr === todayStr)
+  const displayedTodayMilkTotal = todayChartEntry ? todayChartEntry.liters : stats.todayMilkTotal
+
   const balance = stats.monthIncome - stats.monthExpense
-  const hasMilkData = milkChart.some((d) => d.liters > 0)
+  const hasMilkData = displayedMilkChart.some((d) => d.liters > 0)
 
   async function handleAddNote() {
     if (!newNote.trim()) return
@@ -142,7 +174,7 @@ export default function DashboardPage() {
           <h1 className="font-display italic text-2xl sm:text-[26px] text-white max-w-xl leading-snug" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
             {loading
               ? 'Carregando os números da sua fazenda…'
-              : `Sua fazenda produziu ${formatNumber(stats.todayMilkTotal)} litros de leite hoje.`}
+              : `Sua fazenda produziu ${formatNumber(displayedTodayMilkTotal)} litros de leite hoje.`}
           </h1>
           {now && <p className="text-primary-100/80 text-sm mt-2">{formatDate(now, "EEEE, dd 'de' MMMM 'de' yyyy")}</p>}
         </div>
@@ -159,7 +191,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard icon="🐄🐂" label="Total de Animais" value={stats.totalAnimals.toString()}
               sub={`${stats.activeAnimals} ativos`} color="green" />
-            <StatCard icon="🥛" label="Produção Hoje" value={`${formatNumber(stats.todayMilkTotal)} L`}
+            <StatCard icon="🥛" label="Produção Hoje" value={`${formatNumber(displayedTodayMilkTotal)} L`}
               sub={`${formatNumber(stats.monthMilkTotal)} L no mês`} color="blue" />
             <StatCard icon={Bell} label="Alertas Pendentes" value={stats.pendingAlerts.toString()}
               sub={`${stats.criticalAlerts} críticos`} color="red" link="/alertas" />
@@ -187,7 +219,7 @@ export default function DashboardPage() {
           </div>
           {hasMilkData ? (
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={milkChart}>
+              <AreaChart data={displayedMilkChart}>
                 <defs>
                   <linearGradient id="milkGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/>

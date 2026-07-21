@@ -125,3 +125,36 @@ export async function saveAndSend(entry: Omit<QueuedEntry, 'localId' | 'createdA
   if (result.outcome !== 'retry') removeFromQueue(queued.localId)
   return result
 }
+
+// Roda a sincronização em background em QUALQUER tela do app, não só na de
+// leite — antes, se o usuário lançasse um leite offline e saísse da tela de
+// leite antes da conexão voltar, o lançamento nunca era enviado sozinho.
+// Chamado uma única vez (guardado por módulo) a partir do DashboardShell,
+// que fica montado o tempo todo enquanto o usuário navega pelo app.
+let globalSyncStarted = false
+
+export function startGlobalOfflineSync() {
+  if (!isBrowser() || globalSyncStarted) return
+  globalSyncStarted = true
+
+  let syncing = false
+  function trySync() {
+    if (syncing || !navigator.onLine || getQueue().length === 0) return
+    syncing = true
+    flushQueue()
+      .then(({ rejected }) => {
+        if (rejected.length > 0) {
+          window.dispatchEvent(new CustomEvent('offline-queue:rejected', { detail: { errors: rejected.map((r) => r.error) } }))
+        }
+      })
+      .finally(() => { syncing = false })
+  }
+
+  function handleVisibility() { if (document.visibilityState === 'visible') trySync() }
+
+  trySync()
+  setInterval(trySync, 20000)
+  window.addEventListener('online', trySync)
+  window.addEventListener('offline-queue:changed', trySync)
+  document.addEventListener('visibilitychange', handleVisibility)
+}

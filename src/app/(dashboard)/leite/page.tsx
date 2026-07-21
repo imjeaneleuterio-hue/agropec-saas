@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { formatNumber, formatDate } from '@/lib/utils'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { getQueue, flushQueue, saveAndSend, type QueuedEntry } from '@/lib/offlineQueue'
+import { getQueue, saveAndSend, type QueuedEntry } from '@/lib/offlineQueue'
 
 type DailyRecord = {
   id: string
@@ -84,46 +84,35 @@ export default function LeitePage() {
   }, [loadDailyRecords, loadAnimalRecords])
 
   // ---- fila de lançamentos offline ----
-  // O evento 'online' do navegador nem sempre dispara em celular quando a
-  // conexão volta com a aba em segundo plano (tela bloqueada, trocou de
-  // app). Por isso a sincronização também é tentada quando a aba volta a
-  // ficar visível e periodicamente enquanto houver itens pendentes — não só
-  // no evento 'online'.
+  // O envio de verdade (flushQueue) roda em background a partir do
+  // DashboardShell (startGlobalOfflineSync), então funciona em qualquer tela
+  // do app — não só nessa. Aqui só refletimos o estado da fila na tela:
+  // atualiza a lista de pendentes e recarrega os registros quando algo muda
+  // (por exemplo, quando um lançamento sai da fila porque foi sincronizado
+  // em outra tela), e mostra o aviso se algo for rejeitado de vez.
   useEffect(() => {
-    let syncing = false
-    function syncQueue() { setQueue(getQueue()) }
-    function trySync() {
-      if (syncing || !navigator.onLine || getQueue().length === 0) return
-      syncing = true
-      flushQueue()
-        .then(({ rejected }) => {
-          syncQueue()
-          loadDailyRecords()
-          loadAnimalRecords()
-          if (rejected.length > 0) {
-            setRejectedErrors((prev) => [...prev, ...rejected.map((r) => r.error)])
-          }
-        })
-        .finally(() => { syncing = false })
-    }
-    function handleOnline() { setOnline(true); trySync() }
+    function syncQueue() { setQueue(getQueue()); loadDailyRecords(); loadAnimalRecords() }
+    function handleOnline() { setOnline(true) }
     function handleOffline() { setOnline(false) }
-    function handleVisibility() { if (document.visibilityState === 'visible') { setOnline(navigator.onLine); trySync() } }
+    function handleVisibility() { if (document.visibilityState === 'visible') setOnline(navigator.onLine) }
+    function handleRejected(e: Event) {
+      const detail = (e as CustomEvent).detail as { errors: string[] }
+      setRejectedErrors((prev) => [...prev, ...detail.errors])
+    }
 
     setOnline(navigator.onLine)
-    syncQueue()
-    trySync()
+    setQueue(getQueue())
 
-    const interval = setInterval(trySync, 20000)
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     window.addEventListener('offline-queue:changed', syncQueue)
+    window.addEventListener('offline-queue:rejected', handleRejected)
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
-      clearInterval(interval)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('offline-queue:changed', syncQueue)
+      window.removeEventListener('offline-queue:rejected', handleRejected)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
   }, [loadDailyRecords, loadAnimalRecords])

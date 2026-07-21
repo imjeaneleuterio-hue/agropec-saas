@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header'
 import { VoiceButton } from '@/components/VoiceButton'
 import { UpgradeModal } from '@/components/UpgradeModal'
 import { UpdateBanner } from '@/components/UpdateBanner'
+import { startGlobalOfflineSync } from '@/lib/offlineQueue'
 import type { User } from '@/types'
 import type { PlanKey } from '@/lib/plans'
 
@@ -63,6 +64,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         }
       }
     })
+  }, [])
+
+  useEffect(() => {
+    startGlobalOfflineSync()
   }, [])
 
   useEffect(() => {
