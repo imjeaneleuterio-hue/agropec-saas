@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
+import { limparAlertasVencidos } from '@/lib/alerts'
 import { addDays } from 'date-fns'
 
 export async function GET(request: Request) {
@@ -15,6 +16,8 @@ export async function GET(request: Request) {
 
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ data: [] })
+
+    await limparAlertasVencidos(farmId)
 
     const dueDateFilter = withinDays
       ? { OR: [{ dueDate: null }, { dueDate: { lte: addDays(new Date(), parseInt(withinDays)) } }] }

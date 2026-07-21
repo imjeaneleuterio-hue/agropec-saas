@@ -207,6 +207,28 @@ export default function DashboardPage() {
         </>
       )}
 
+      <div className="card p-5">
+        <h2 className="section-title mb-4">Atalhos rápidos</h2>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/leite" className="btn-primary">
+            <Droplets className="w-[17px] h-[17px]" />
+            Lançar produção do dia
+          </Link>
+          <Link href="/pesagem" className="btn-secondary">
+            <Scale className="w-[17px] h-[17px]" />
+            Registrar pesagem
+          </Link>
+          <Link href="/sanitario" className="btn-secondary">
+            <Syringe className="w-[17px] h-[17px]" />
+            Nova ocorrência sanitária
+          </Link>
+          <Link href="/rebanho/novo" className="btn-secondary">
+            <Tag className="w-[17px] h-[17px]" />
+            Cadastrar animal
+          </Link>
+        </div>
+      </div>
+
       {stats.upcomingEstrus.length > 0 && (
         <EstrusCard items={stats.upcomingEstrus} />
       )}
@@ -265,28 +287,6 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="card p-5">
-        <h2 className="section-title mb-4">Atalhos rápidos</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/leite" className="btn-primary">
-            <Droplets className="w-[17px] h-[17px]" />
-            Lançar produção do dia
-          </Link>
-          <Link href="/pesagem" className="btn-secondary">
-            <Scale className="w-[17px] h-[17px]" />
-            Registrar pesagem
-          </Link>
-          <Link href="/sanitario" className="btn-secondary">
-            <Syringe className="w-[17px] h-[17px]" />
-            Nova ocorrência sanitária
-          </Link>
-          <Link href="/rebanho/novo" className="btn-secondary">
-            <Tag className="w-[17px] h-[17px]" />
-            Cadastrar animal
-          </Link>
         </div>
       </div>
 

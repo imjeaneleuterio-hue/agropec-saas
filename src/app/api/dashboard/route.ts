@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getActiveFarmId } from '@/lib/farm'
+import { limparAlertasVencidos } from '@/lib/alerts'
 
 export async function GET() {
   try {
@@ -10,6 +11,8 @@ export async function GET() {
 
     const farmId = await getActiveFarmId(session.userId)
     if (!farmId) return NextResponse.json({ data: { totalAnimals: 0, activeAnimals: 0, dairyAnimals: 0, todayMilkTotal: 0, monthMilkTotal: 0, pendingAlerts: 0, criticalAlerts: 0, monthIncome: 0, monthExpense: 0, pregnantAnimals: 0 } })
+
+    await limparAlertasVencidos(farmId)
 
     // "Hoje" tem que ser o dia calendário do Brasil, não o do servidor (UTC
     // na Vercel) — depois de ~21h no horário de Brasília o servidor já está
