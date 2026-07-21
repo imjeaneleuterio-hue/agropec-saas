@@ -59,6 +59,7 @@ export default function LeitePage() {
   const [animalForm, setAnimalForm] = useState(EMPTY_ANIMAL)
   const [queue, setQueue] = useState<QueuedEntry[]>([])
   const [online, setOnline] = useState(true)
+  const [rejectedErrors, setRejectedErrors] = useState<string[]>([])
 
   const loadDailyRecords = useCallback(async () => {
     const thirtyDaysAgo = new Date()
@@ -95,7 +96,14 @@ export default function LeitePage() {
       if (syncing || !navigator.onLine || getQueue().length === 0) return
       syncing = true
       flushQueue()
-        .then(() => { syncQueue(); loadDailyRecords(); loadAnimalRecords() })
+        .then(({ rejected }) => {
+          syncQueue()
+          loadDailyRecords()
+          loadAnimalRecords()
+          if (rejected.length > 0) {
+            setRejectedErrors((prev) => [...prev, ...rejected.map((r) => r.error)])
+          }
+        })
         .finally(() => { syncing = false })
     }
     function handleOnline() { setOnline(true); trySync() }
@@ -242,6 +250,18 @@ export default function LeitePage() {
 
   return (
     <div className="space-y-6">
+      {/* Lançamentos offline que o servidor recusou de vez (ex: sessão expirada) */}
+      {rejectedErrors.length > 0 && (
+        <div className="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
+          <span className="text-lg leading-none">⚠️</span>
+          <div className="flex-1">
+            <p>{rejectedErrors.length} lançamento{rejectedErrors.length !== 1 ? 's' : ''} feito{rejectedErrors.length !== 1 ? 's' : ''} offline não foi{rejectedErrors.length !== 1 ? 'ram' : ''} salvo{rejectedErrors.length !== 1 ? 's' : ''}: {rejectedErrors[0]}</p>
+            <p className="text-xs font-normal mt-1">Provavelmente sua sessão expirou enquanto você estava sem internet. Faça login novamente e registre esse lançamento de novo.</p>
+          </div>
+          <button onClick={() => setRejectedErrors([])} className="text-red-700 text-lg leading-none px-1">×</button>
+        </div>
+      )}
+
       {/* Offline / pending banner */}
       {(!online || queue.length > 0) && (
         <div className="flex items-center gap-3 p-3.5 bg-alert-bg border border-alert-border rounded-xl text-alert-text text-sm font-semibold">

@@ -81,9 +81,14 @@ async function sendOne(entry: QueuedEntry): Promise<SendResult> {
   }
 }
 
-export async function flushQueue(): Promise<{ synced: string[]; failed: string[] }> {
+export async function flushQueue(): Promise<{
+  synced: string[]
+  failed: string[]
+  rejected: { localId: string; error: string }[]
+}> {
   const synced: string[] = []
   const failed: string[] = []
+  const rejected: { localId: string; error: string }[] = []
 
   for (const entry of getQueue()) {
     const result = await sendOne(entry)
@@ -91,12 +96,19 @@ export async function flushQueue(): Promise<{ synced: string[]; failed: string[]
       failed.push(entry.localId)
       break // provável ainda sem conexão boa — não adianta tentar os próximos agora
     }
-    // 'ok' ou 'rejected' — em ambos os casos não há por que manter na fila
+    if (result.outcome === 'rejected') {
+      // Servidor recusou de vez (ex.: sessão expirada, dado inválido) —
+      // reenviar não adianta, mas isso NÃO pode desaparecer sem avisar:
+      // é um lançamento que o usuário fez e nunca vai ser salvo.
+      removeFromQueue(entry.localId)
+      rejected.push({ localId: entry.localId, error: result.error })
+      continue
+    }
     removeFromQueue(entry.localId)
     synced.push(entry.localId)
   }
 
-  return { synced, failed }
+  return { synced, failed, rejected }
 }
 
 // Salva a tentativa imediatamente na fila (nunca perde o dado, mesmo se o
